@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phrase Video Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Text + JSON → MP4</p>
+            <h1>Create video</h1>
+          </div>
+          <button class="ghost-button" id="loadSampleButton" type="button">Use example</button>
+        </header>
+
+        <form class="editor" id="generatorForm">
+          <label class="field">
+            <span>Text to search/render</span>
+            <div class="search-row">
+              <input
+                id="phraseText"
+                name="phraseText"
+                type="text"
+                value="Schönen Tag noch!"
+                placeholder="Schönen Tag noch!"
+              />
+              <button class="secondary-button" id="searchButton" type="button">Search</button>
+            </div>
+          </label>
+
+          <label class="field">
+            <span>JSON video data</span>
+            <textarea
+              id="videoData"
+              name="videoData"
+              spellcheck="false"
+              placeholder='Paste the JSON object or JSON array from your video response here'
+            ></textarea>
+          </label>
+
+          <details class="advanced">
+            <summary>Advanced</summary>
+            <div class="controls">
+              <label class="field compact">
+                <span>Layout</span>
+                <select id="layout" name="layout">
+                  <option value="landscape">16:9 Landscape</option>
+                  <option value="vertical">9:16 Vertical</option>
+                </select>
+              </label>
+
+              <label class="field compact">
+                <span>Gap</span>
+                <input id="gapMs" name="gapMs" type="number" min="0" step="40" value="360" />
+              </label>
+
+              <label class="field compact">
+                <span>Limit</span>
+                <input id="searchLimit" name="searchLimit" type="number" min="1" max="50" step="1" value="10" />
+              </label>
+
+              <label class="field compact">
+                <span>Language</span>
+                <input id="searchLanguage" name="searchLanguage" type="text" value="de" />
+              </label>
+
+              <label class="toggle">
+                <input id="showMovieInfo" name="showMovieInfo" type="checkbox" checked />
+                <span>Movie info</span>
+              </label>
+            </div>
+          </details>
+
+          <div class="actions">
+            <button class="primary-button" id="generateButton" type="submit">
+              <span class="button-icon">▶</span>
+              Generate video
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="status-panel">
+        <div class="status-header">
+          <p class="eyebrow">Status</p>
+          <strong id="statusText">Ready</strong>
+        </div>
+        <div class="results" id="resultsList">
+          <div class="empty-preview" id="emptyPreview">Generated videos will appear here</div>
+        </div>
+        <pre id="logOutput"></pre>
+      </aside>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

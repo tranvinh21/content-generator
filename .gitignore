@@ -1,0 +1,6 @@
+/node_modules
+/out
+/render-jobs
+/.next
+/tmp
+.env

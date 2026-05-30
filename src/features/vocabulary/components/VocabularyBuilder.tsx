@@ -1,0 +1,444 @@
+'use client';
+
+import {useEffect, useMemo, useRef, useState} from 'react';
+import type {NormalizedClip} from '../../../providers/normalized-clip';
+
+type WordBlock = {
+  id: string;
+  term: string;
+  clips: NormalizedClip[];
+  selected: string[];
+  searching: boolean;
+};
+
+type SettingsStatus = {
+  openai: boolean;
+  elevenLabs: boolean;
+  playphrase: boolean;
+  filmot: boolean;
+  macOsVoiceFallback: boolean;
+};
+
+const createBlock = (index: number): WordBlock => ({
+  id: crypto.randomUUID(),
+  term: index === 0 ? 'Moment mal' : '',
+  clips: [],
+  selected: [],
+  searching: false,
+});
+
+const appendLog = (setLogs: (updater: (logs: string[]) => string[]) => void, lines: string | string[]) => {
+  const nextLines = Array.isArray(lines) ? lines : [lines];
+  setLogs((logs) => [...logs, ...nextLines]);
+};
+
+const ClipPreview = ({clip}: {clip: NormalizedClip}) => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [currentMs, setCurrentMs] = useState(0);
+  const [playing, setPlaying] = useState(false);
+
+  const togglePlayback = async () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    if (video.paused) {
+      video.muted = false;
+      video.volume = 1;
+      await video.play();
+    } else {
+      video.pause();
+    }
+  };
+
+  return (
+    <div className="clipPreview">
+      {clip.media.renderUrl ? (
+        <>
+          <video
+            ref={videoRef}
+            src={clip.media.renderUrl}
+            playsInline
+            preload="metadata"
+            onClick={(event) => event.stopPropagation()}
+            onEnded={() => setPlaying(false)}
+            onPause={() => setPlaying(false)}
+            onPlay={() => setPlaying(true)}
+            onTimeUpdate={(event) => setCurrentMs(event.currentTarget.currentTime * 1000)}
+          />
+          <button
+            className="previewPlay"
+            type="button"
+            aria-label={playing ? 'Pause preview' : 'Play preview'}
+            onClick={(event) => {
+              event.stopPropagation();
+              void togglePlayback();
+            }}
+          >
+            {playing ? 'Pause' : 'Play'}
+          </button>
+        </>
+      ) : (
+        <div className="thumb">{clip.media.thumbnailUrl ? 'YouTube clip' : 'Filmot result'}</div>
+      )}
+      <div className="previewSubtitle" aria-hidden="true">
+        {clip.words.length > 0 ? (
+          clip.words.map((word) => {
+            const active = currentMs >= word.startMs && currentMs <= word.endMs;
+            const className = active ? 'active' : word.isMatch ? 'match' : undefined;
+
+            return (
+              <span className={className} key={`${word.index}-${word.text}`}>
+                {word.text}
+              </span>
+            );
+          })
+        ) : (
+          <span>{clip.text}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const VocabularyBuilder = () => {
+  const [blocks, setBlocks] = useState<WordBlock[]>(() => [createBlock(0)]);
+  const [logs, setLogs] = useState<string[]>(['Ready. Add German words or phrases, search clips, then render.']);
+  const [rendering, setRendering] = useState(false);
+  const [coverRendering, setCoverRendering] = useState(false);
+  const [result, setResult] = useState<{downloadUrl: string; fileName: string} | null>(null);
+  const [coverResult, setCoverResult] = useState<{downloadUrl: string; fileName: string} | null>(null);
+  const [coverForm, setCoverForm] = useState({
+    title: '100 câu tiếng Đức cơ bản 🇩🇪',
+  });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsStatus, setSettingsStatus] = useState<SettingsStatus | null>(null);
+  const [settingsForm, setSettingsForm] = useState({
+    curl: '',
+  });
+
+  const selectedCount = useMemo(() => blocks.reduce((sum, block) => sum + block.selected.length, 0), [blocks]);
+
+  useEffect(() => {
+    void refreshSettings();
+  }, []);
+
+  const updateBlock = (id: string, updater: (block: WordBlock) => WordBlock) => {
+    setBlocks((current) => current.map((block) => (block.id === id ? updater(block) : block)));
+  };
+
+  const addBlock = () => setBlocks((current) => [...current, createBlock(current.length)]);
+
+  const refreshSettings = async () => {
+    const response = await fetch('/api/settings');
+    const payload = (await response.json()) as {ok: boolean; status?: SettingsStatus};
+
+    if (payload.status) {
+      setSettingsStatus(payload.status);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSettingsSaving(true);
+    appendLog(setLogs, '[Settings] Saving local provider credentials...');
+
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(settingsForm),
+      });
+      const payload = (await response.json()) as {ok: boolean; savedKeys?: string[]; status?: SettingsStatus; message?: string};
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message ?? 'Failed to save settings');
+      }
+
+      setSettingsForm((current) => ({...current, curl: ''}));
+      if (payload.status) {
+        setSettingsStatus(payload.status);
+      }
+      appendLog(setLogs, `[Settings] Saved: ${payload.savedKeys?.join(', ') || 'nothing new'}`);
+    } catch (error) {
+      appendLog(setLogs, `[Settings] Save failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const searchBlock = async (block: WordBlock) => {
+    if (!block.term.trim()) {
+      appendLog(setLogs, '[Search] Enter a German word or phrase first.');
+      return;
+    }
+
+    updateBlock(block.id, (current) => ({...current, searching: true, clips: [], selected: []}));
+    appendLog(setLogs, `[${block.term}] Searching PlayPhrase + Filmot...`);
+
+    try {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({query: block.term.trim(), language: 'de', playphraseLimit: 10}),
+      });
+      const payload = (await response.json()) as {ok: boolean; clips?: NormalizedClip[]; logs?: string[]; message?: string};
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message ?? 'Search failed');
+      }
+
+      const clips = payload.clips ?? [];
+      updateBlock(block.id, (current) => ({...current, clips, searching: false}));
+      appendLog(setLogs, [
+        ...(payload.logs ?? [`[${block.term}] Found ${clips.length} clips`]),
+        `[${block.term}] Preview subtitles ready. Play clips before selecting.`,
+      ]);
+    } catch (error) {
+      updateBlock(block.id, (current) => ({...current, searching: false}));
+      appendLog(setLogs, `[${block.term}] Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const toggleClip = (block: WordBlock, clip: NormalizedClip) => {
+    updateBlock(block.id, (current) => {
+      const selected = current.selected.includes(clip.id)
+        ? current.selected.filter((id) => id !== clip.id)
+        : current.selected.length >= 3
+          ? current.selected
+          : [...current.selected, clip.id];
+
+      return {...current, selected};
+    });
+  };
+
+  const getRenderBlocks = () =>
+    blocks
+      .map((block) => ({
+        id: block.id,
+        term: block.term.trim(),
+        selectedClips: block.clips.filter((clip) => block.selected.includes(clip.id)),
+      }))
+      .filter((block) => block.term && block.selectedClips.length > 0);
+
+  const renderCover = async () => {
+    setCoverRendering(true);
+    setCoverResult(null);
+    appendLog(setLogs, 'Preparing cover render...');
+
+    try {
+      const response = await fetch('/api/render-cover', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({title: coverForm.title.trim() || '100 câu tiếng Đức cơ bản 🇩🇪'}),
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        downloadUrl?: string;
+        fileName?: string;
+        logs?: string[];
+        message?: string;
+      };
+
+      appendLog(setLogs, payload.logs ?? []);
+
+      if (!response.ok || !payload.ok || !payload.downloadUrl || !payload.fileName) {
+        throw new Error(payload.message ?? 'Cover render failed');
+      }
+
+      setCoverResult({downloadUrl: payload.downloadUrl, fileName: payload.fileName});
+    } catch (error) {
+      appendLog(setLogs, `Cover render failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setCoverRendering(false);
+    }
+  };
+
+  const renderFinal = async () => {
+    setRendering(true);
+    setResult(null);
+    appendLog(setLogs, 'Preparing final render...');
+
+    try {
+      const response = await fetch('/api/render-final', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({blocks: getRenderBlocks()}),
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        downloadUrl?: string;
+        fileName?: string;
+        logs?: string[];
+        message?: string;
+      };
+
+      appendLog(setLogs, payload.logs ?? []);
+
+      if (!response.ok || !payload.ok || !payload.downloadUrl || !payload.fileName) {
+        throw new Error(payload.message ?? 'Render failed');
+      }
+
+      setResult({downloadUrl: payload.downloadUrl, fileName: payload.fileName});
+    } catch (error) {
+      appendLog(setLogs, `Final render failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setRendering(false);
+    }
+  };
+
+  return (
+    <main className="page">
+      <section className="panel">
+        <header className="header">
+          <div>
+            <p className="eyebrow">German vocabulary to TikTok</p>
+            <h1>100 câu tiếng Đức cơ bản 🇩🇪</h1>
+          </div>
+          <div className="toolbar">
+            <button className="button secondary" type="button" onClick={() => setSettingsOpen((open) => !open)}>
+              Settings
+            </button>
+            <button className="button secondary" type="button" onClick={addBlock}>
+              Add block
+            </button>
+            <button className="button accent" type="button" disabled={selectedCount === 0 || rendering} onClick={renderFinal}>
+              Render TikTok
+            </button>
+          </div>
+        </header>
+
+        {settingsOpen ? (
+          <section className="settings">
+            <div className="settingsStatus">
+              <span className={settingsStatus?.openai ? 'ok' : 'warn'}>OpenAI {settingsStatus?.openai ? 'ready' : 'missing'}</span>
+              <span className={settingsStatus?.elevenLabs ? 'ok' : 'warn'}>
+                ElevenLabs {settingsStatus?.elevenLabs ? 'ready' : 'fallback'}
+              </span>
+              <span className={settingsStatus?.playphrase ? 'ok' : 'warn'}>
+                PlayPhrase {settingsStatus?.playphrase ? 'ready' : 'needs curl'}
+              </span>
+              <span className={settingsStatus?.filmot ? 'ok' : 'warn'}>Filmot {settingsStatus?.filmot ? 'ready' : 'needs curl'}</span>
+              <span className="ok">macOS voice fallback ready</span>
+            </div>
+
+            <textarea
+              className="settingsTextarea"
+              value={settingsForm.curl}
+              placeholder="Paste PlayPhrase or Filmot curl here. The app will extract cookie, authorization, csrf token, and user-agent."
+              onChange={(event) => setSettingsForm((current) => ({...current, curl: event.target.value}))}
+            />
+
+            <button className="button primary" type="button" disabled={settingsSaving} onClick={saveSettings}>
+              {settingsSaving ? 'Saving' : 'Save settings'}
+            </button>
+          </section>
+        ) : null}
+
+        <section className="coverEditor">
+          <div>
+            <p className="eyebrow">Cover</p>
+            <h2>Customize cover title</h2>
+          </div>
+          <input
+            className="coverTitleInput"
+            value={coverForm.title}
+            placeholder="100 câu tiếng Đức cơ bản 🇩🇪"
+            onChange={(event) => setCoverForm({title: event.target.value})}
+          />
+          <button className="button secondary" type="button" disabled={coverRendering} onClick={renderCover}>
+            {coverRendering ? 'Generating cover' : 'Generate cover'}
+          </button>
+        </section>
+
+        <div className="blocks">
+          {blocks.map((block, index) => (
+            <article className="block" key={block.id}>
+              <div className="blockTop">
+                <div className="index">{index + 1}</div>
+                <input
+                  className="termInput"
+                  value={block.term}
+                  placeholder="German word or phrase"
+                  onChange={(event) => updateBlock(block.id, (current) => ({...current, term: event.target.value}))}
+                />
+                <button className="button primary" type="button" disabled={block.searching} onClick={() => searchBlock(block)}>
+                  {block.searching ? 'Searching' : 'Search'}
+                </button>
+              </div>
+
+              {block.clips.length === 0 ? (
+                <div className="empty">Search results will appear here. Select 1-3 clips for this block.</div>
+              ) : (
+                <div className="clips">
+                  {block.clips.map((clip) => {
+                    const selected = block.selected.includes(clip.id);
+                    const canSelect = selected || block.selected.length < 3;
+                    const selectedOrder = selected ? block.selected.indexOf(clip.id) + 1 : undefined;
+
+                    return (
+                      <div
+                        className={`clip ${selected ? 'selected' : ''} ${canSelect ? '' : 'disabled'}`}
+                        key={clip.id}
+                        role="button"
+                        tabIndex={canSelect ? 0 : -1}
+                        onClick={() => {
+                          if (canSelect) {
+                            toggleClip(block, clip);
+                          }
+                        }}
+                        onKeyDown={(event) => {
+                          if (canSelect && (event.key === 'Enter' || event.key === ' ')) {
+                            event.preventDefault();
+                            toggleClip(block, clip);
+                          }
+                        }}
+                      >
+                        {selectedOrder ? <div className="selectionBadge">{selectedOrder}</div> : null}
+                        <ClipPreview clip={clip} />
+                        <div className="clipMeta">
+                          <span>{clip.provider}</span>
+                          <span>
+                            {selectedOrder ? `Selected #${selectedOrder}` : clip.media.requiresMaterialization ? 'Needs prepare' : 'Preview ready'}
+                          </span>
+                        </div>
+                        <div className="clipText">{clip.text}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <aside className="panel side">
+        <header className="header">
+          <div>
+            <p className="eyebrow">Log</p>
+            <h1>{selectedCount} selected</h1>
+          </div>
+        </header>
+        <pre className="log">{logs.join('\n')}</pre>
+        {coverResult ? (
+          <div className="result">
+            <img src={`${coverResult.downloadUrl}?t=${Date.now()}`} alt="Generated cover" />
+            <a className="download" href={coverResult.downloadUrl} download={coverResult.fileName}>
+              Download cover PNG
+            </a>
+          </div>
+        ) : null}
+        {result ? (
+          <div className="result">
+            <video src={`${result.downloadUrl}?t=${Date.now()}`} controls />
+            <a className="download" href={result.downloadUrl} download={result.fileName}>
+              Download final MP4
+            </a>
+          </div>
+        ) : null}
+      </aside>
+    </main>
+  );
+};

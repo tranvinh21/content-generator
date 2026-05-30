@@ -1,0 +1,30 @@
+{
+  "name": "playphrase-remotion-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "app": "next dev --hostname 127.0.0.1 --port 43123",
+    "build": "next build",
+    "dev": "remotion studio src/index.ts",
+    "next:dev": "next dev --hostname 127.0.0.1 --port 43123",
+    "typecheck": "tsc --noEmit",
+    "render": "remotion render src/index.ts PhraseVideo out/phrase-video.mp4",
+    "render:vertical": "remotion render src/index.ts PhraseVideo out/phrase-video-vertical.mp4 --props='{\"layout\":\"vertical\"}'"
+  },
+  "dependencies": {
+    "@fontsource/manrope": "^5.2.8",
+    "@remotion/cli": "4.0.464",
+    "next": "16.2.6",
+    "openai": "4.104.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.464",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,102 @@
+[
+  {
+    "video-info": {
+      "info": "Fucking Berlin (2016) [00:25:37]",
+      "wps": false,
+      "source-url": "https://www.imdb.com/title/tt4024814/",
+      "imdb": "tt4024814"
+    },
+    "index": 0,
+    "words": [
+      {
+        "start": 0,
+        "end": 261,
+        "score": 0.217,
+        "text": "Schönen",
+        "index": 0,
+        "searched?": true
+      },
+      {
+        "start": 281,
+        "end": 701,
+        "score": 0.726,
+        "text": "Tag",
+        "index": 1,
+        "searched?": true
+      },
+      {
+        "start": 721,
+        "end": 1161,
+        "score": 0.608,
+        "text": "noch.",
+        "index": 2,
+        "searched?": true
+      }
+    ],
+    "start": 1537046,
+    "video-url": "https://s3.ap-northeast-1.wasabisys.com/video-tokio.playphrase.me/multi-storage/64bfccc27ec71b04b2f5a000/64f6d884099f9b1733e7efe3.mp4",
+    "movie": "64bfccc27ec71b04b2f5a000",
+    "id": "64f6d884099f9b1733e7efe3",
+    "end": 1538227,
+    "download-file-name": "schönen-tag-noch.mp4",
+    "text": "Schönen Tag noch."
+  },
+  {
+    "video-info": {
+      "info": "Die Geschichte der Menschheit - leicht gekürzt (2022) [00:10:12]",
+      "wps": false,
+      "source-url": "https://www.imdb.com/title/tt15684550/",
+      "imdb": "tt15684550"
+    },
+    "index": 2,
+    "words": [
+      {
+        "start": 0,
+        "end": 200,
+        "score": 0.599,
+        "text": "Also",
+        "index": 0,
+        "searched?": false
+      },
+      {
+        "start": 220,
+        "end": 360,
+        "score": 0.62,
+        "text": "dann,",
+        "index": 1,
+        "searched?": false
+      },
+      {
+        "start": 381,
+        "end": 601,
+        "score": 0.607,
+        "text": "schönen",
+        "index": 2,
+        "searched?": true
+      },
+      {
+        "start": 621,
+        "end": 761,
+        "score": 0.362,
+        "text": "Tag",
+        "index": 3,
+        "searched?": true
+      },
+      {
+        "start": 801,
+        "end": 901,
+        "score": 0.786,
+        "text": "noch.",
+        "index": 4,
+        "searched?": true
+      }
+    ],
+    "start": 612597,
+    "video-url": "https://s3.ap-northeast-1.wasabisys.com/video-tokio.playphrase.me/multi-storage/64bf15e12f7a765b387a2839/64f70c5a099f9b1733e8df41.mp4",
+    "movie": "64bf15e12f7a765b387a2839",
+    "id": "64f70c5a099f9b1733e8df41",
+    "end": 614678,
+    "download-file-name": "also-dann-schönen-tag-noch.mp4",
+    "text": "Also dann, schönen Tag noch."
+  }
+]
