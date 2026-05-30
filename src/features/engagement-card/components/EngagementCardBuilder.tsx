@@ -1,6 +1,8 @@
 'use client';
 
 import {useState} from 'react';
+import {PanelHeader} from '../../../components/PanelHeader';
+import {StatusPanel} from '../../../components/StatusPanel';
 
 type EngagementCardResult = {
   downloadUrl: string;
@@ -64,15 +66,15 @@ export const EngagementCardBuilder = () => {
   return (
     <main className="postPage engagementPage">
       <section className="panel postComposer">
-        <header className="header">
-          <div>
-            <p className="eyebrow">End card</p>
-            <h1>Like & follow image</h1>
-          </div>
-          <button className="button accent" disabled={rendering} type="button" onClick={generate}>
-            {rendering ? 'Generating' : 'Generate'}
-          </button>
-        </header>
+        <PanelHeader
+          actions={
+            <button className="button accent" disabled={rendering} type="button" onClick={generate}>
+              {rendering ? 'Generating' : 'Generate'}
+            </button>
+          }
+          eyebrow="End card"
+          title="Like & follow image"
+        />
 
         <div className="engagementForm">
           <label>
@@ -106,12 +108,7 @@ export const EngagementCardBuilder = () => {
       </section>
 
       <section className="panel postResults">
-        <header className="header compactHeader">
-          <div>
-            <p className="eyebrow">Output</p>
-            <h1>{image ? 'Ready' : 'Preview'}</h1>
-          </div>
-        </header>
+        <PanelHeader compact eyebrow="Output" title={image ? 'Ready' : 'Preview'} />
 
         {image ? (
           <div className="postGrid singleImageGrid">
@@ -131,15 +128,7 @@ export const EngagementCardBuilder = () => {
         )}
       </section>
 
-      <aside className="panel postLog">
-        <header className="header compactHeader">
-          <div>
-            <p className="eyebrow">Log</p>
-            <h1>Status</h1>
-          </div>
-        </header>
-        <pre className="log">{logs.join('\n')}</pre>
-      </aside>
+      <StatusPanel logs={logs} />
     </main>
   );
 };

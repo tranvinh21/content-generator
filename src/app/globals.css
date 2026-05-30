@@ -26,6 +26,10 @@ body {
   font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+a {
+  color: inherit;
+}
+
 button,
 input {
   font: inherit;
@@ -35,15 +39,122 @@ button {
   cursor: pointer;
 }
 
-.appNav {
-  width: min(1500px, calc(100vw - 28px));
-  margin: 14px auto 0;
-  display: flex;
+.appShell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.appSidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 18px 14px;
+  border-right: 1px solid rgba(217, 209, 196, 0.86);
+  background:
+    linear-gradient(rgba(255, 253, 248, 0.88), rgba(255, 253, 248, 0.88)),
+    radial-gradient(circle at 25% 0%, rgba(244, 196, 48, 0.28), transparent 34%);
+  box-shadow: 12px 0 32px rgba(55, 48, 39, 0.07);
+}
+
+.brandMark {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  text-decoration: none;
+}
+
+.brandMark strong {
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.brandKicker {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.featureNav {
+  display: grid;
   gap: 8px;
 }
 
-.appNav a {
-  min-height: 38px;
+.featureNav a {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.featureNav a:hover,
+.featureNav a.active {
+  border-color: var(--line);
+  background: #fffdf8;
+  box-shadow: 0 12px 26px rgba(55, 48, 39, 0.08);
+}
+
+.featureNav a.active {
+  border-color: rgba(223, 47, 47, 0.4);
+}
+
+.featureNav span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.featureNav strong {
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.featureNav small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.28;
+}
+
+.appMain {
+  min-width: 0;
+  padding: 14px;
+}
+
+.mobileTopbar {
+  display: none;
+  margin-bottom: 10px;
+}
+
+.mobileBrand {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.mobileNav {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  padding: 10px 0 2px;
+}
+
+.mobileNav a {
+  flex: 0 0 auto;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line);
@@ -52,19 +163,19 @@ button {
   color: var(--ink);
   font-size: 13px;
   font-weight: 900;
-  padding: 0 13px;
+  padding: 0 12px;
   text-decoration: none;
   box-shadow: 0 10px 24px rgba(55, 48, 39, 0.08);
 }
 
-.appNav a:hover {
+.mobileNav a.active {
   border-color: var(--accent);
   color: var(--accent);
 }
 
 .page {
-  width: min(1500px, calc(100vw - 28px));
-  margin: 10px auto 14px;
+  width: min(1500px, 100%);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 390px;
   gap: 16px;
@@ -481,24 +592,33 @@ h1 {
 }
 
 .postPage {
-  width: min(1500px, calc(100vw - 28px));
-  margin: 10px auto 14px;
+  width: min(1500px, 100%);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(360px, 460px) minmax(0, 1fr) 360px;
   gap: 16px;
 }
 
 .contrastPage {
-  width: min(1500px, calc(100vw - 28px));
-  margin: 10px auto 14px;
+  width: min(1500px, 100%);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(420px, 560px) minmax(0, 1fr) 360px;
   gap: 16px;
 }
 
+.readAlongPage {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(460px, 620px) minmax(320px, 1fr) 360px;
+  gap: 16px;
+}
+
 .postComposer,
 .postLog,
-.contrastComposer {
+.contrastComposer,
+.readAlongComposer {
   align-self: start;
   position: sticky;
   top: 12px;
@@ -675,6 +795,71 @@ h1 {
   gap: 12px;
 }
 
+.readAlongForm {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.readAlongForm label {
+  display: grid;
+  gap: 6px;
+}
+
+.readAlongForm label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.readAlongForm input,
+.readAlongForm textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: 850 16px/1.35 "Manrope", ui-sans-serif, system-ui, sans-serif;
+  outline: none;
+  padding: 11px 12px;
+}
+
+.readAlongForm input:focus,
+.readAlongForm textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.readingTextarea {
+  min-height: 260px;
+  resize: vertical;
+}
+
+.vocabularyTextarea {
+  min-height: 190px;
+  resize: vertical;
+}
+
+.checkboxLine {
+  display: flex !important;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 9px !important;
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.checkboxLine input {
+  width: 18px;
+  height: 18px;
+}
+
+.readAlongPreview video {
+  aspect-ratio: 9 / 16;
+  max-height: 760px;
+  object-fit: contain;
+}
+
 .singleImageGrid {
   grid-template-columns: minmax(280px, 460px);
 }
@@ -778,13 +963,15 @@ h1 {
 
 @media (max-width: 1200px) {
   .postPage,
-  .contrastPage {
+  .contrastPage,
+  .readAlongPage {
     grid-template-columns: 1fr;
   }
 
   .postComposer,
   .postLog,
-  .contrastComposer {
+  .contrastComposer,
+  .readAlongComposer {
     position: static;
   }
 
@@ -794,5 +981,23 @@ h1 {
 
   .engagementSplit {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .appShell {
+    display: block;
+  }
+
+  .appSidebar {
+    display: none;
+  }
+
+  .appMain {
+    padding: 12px;
+  }
+
+  .mobileTopbar {
+    display: block;
   }
 }

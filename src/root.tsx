@@ -9,11 +9,13 @@ import {EngagementCardImage} from './engagement-card-image';
 import {FormalContrastImage} from './formal-contrast-image';
 import {OpenGraphBlogImage} from './opengraph-blog-image';
 import {PhraseVideo} from './phrase-video';
+import {ReadAlongVideo, getReadAlongDuration} from './read-along-video';
 import {VocabularyPostImage} from './post-image';
 import {getVocabularyTikTokDuration, VocabularyCover, VocabularyTikTok} from './vocabulary-tiktok';
 import {DEFAULT_FPS, DEFAULT_GAP_MS, getVideoDurationInFrames} from './timing';
 import type {PhraseVideoProps} from './types';
 import type {VocabularyTikTokProps} from './features/vocabulary/types';
+import type {ReadAlongVideoProps} from './features/read-along/types';
 
 const defaultProps: PhraseVideoProps = {
   clips: sampleClips,
@@ -25,6 +27,18 @@ const defaultProps: PhraseVideoProps = {
 const vocabularyDefaultProps: VocabularyTikTokProps = {
   title: '100 câu tiếng Đức cơ bản 🇩🇪',
   blocks: [],
+};
+
+const readAlongDefaultProps: ReadAlongVideoProps = {
+  title: 'Leseübung: Zeit im Alltag',
+  level: 'B1',
+  text: 'Viele Menschen haben das Gefühl, dass ihnen die Zeit ständig davonläuft. Am Morgen beginnt der Tag oft hektisch.',
+  vocabulary: [
+    {term: 'ständig', ipa: '/ˈʃtɛndɪç/', translationVi: 'liên tục, thường xuyên'},
+    {term: 'hektisch', ipa: '/ˈhɛktɪʃ/', translationVi: 'hối hả, tất bật'},
+  ],
+  durationFrames: 360,
+  useEndCard: true,
 };
 
 export const Root: React.FC = () => {
@@ -82,6 +96,20 @@ export const Root: React.FC = () => {
         width={1080}
         height={1920}
         defaultProps={vocabularyDefaultProps}
+      />
+      <Composition
+        id="ReadAlongVideo"
+        component={ReadAlongVideo}
+        durationInFrames={435}
+        fps={DEFAULT_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={readAlongDefaultProps}
+        calculateMetadata={({props}) => ({
+          durationInFrames: getReadAlongDuration(props),
+          width: 1080,
+          height: 1920,
+        })}
       />
       <Composition
         id="VocabularyPostImage"

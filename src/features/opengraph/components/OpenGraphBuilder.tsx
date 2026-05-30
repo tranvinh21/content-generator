@@ -1,6 +1,8 @@
 'use client';
 
 import {useState} from 'react';
+import {PanelHeader} from '../../../components/PanelHeader';
+import {StatusPanel} from '../../../components/StatusPanel';
 
 type OpenGraphResult = {
   downloadUrl: string;
@@ -65,15 +67,15 @@ export const OpenGraphBuilder = () => {
   return (
     <main className="postPage opengraphPage">
       <section className="panel postComposer">
-        <header className="header">
-          <div>
-            <p className="eyebrow">Blog OpenGraph</p>
-            <h1>Generate OG image</h1>
-          </div>
-          <button className="button accent" disabled={rendering || !copy.title.trim()} type="button" onClick={generate}>
-            {rendering ? 'Generating' : 'Generate'}
-          </button>
-        </header>
+        <PanelHeader
+          actions={
+            <button className="button accent" disabled={rendering || !copy.title.trim()} type="button" onClick={generate}>
+              {rendering ? 'Generating' : 'Generate'}
+            </button>
+          }
+          eyebrow="Blog OpenGraph"
+          title="Generate OG image"
+        />
 
         <div className="engagementForm">
           <label>
@@ -101,12 +103,7 @@ export const OpenGraphBuilder = () => {
       </section>
 
       <section className="panel postResults">
-        <header className="header compactHeader">
-          <div>
-            <p className="eyebrow">Output</p>
-            <h1>{image ? 'Ready' : 'Preview'}</h1>
-          </div>
-        </header>
+        <PanelHeader compact eyebrow="Output" title={image ? 'Ready' : 'Preview'} />
 
         {image ? (
           <div className="postGrid opengraphGrid">
@@ -126,13 +123,7 @@ export const OpenGraphBuilder = () => {
         )}
       </section>
 
-      <aside className="panel postLog">
-        <header className="header compactHeader">
-          <div>
-            <p className="eyebrow">Format</p>
-            <h1>Rules</h1>
-          </div>
-        </header>
+      <StatusPanel eyebrow="Format" logs={logs} title="Rules">
         <div className="ogRules">
           <strong>Common format</strong>
           <span>Eyebrow: content category, e.g. German grammar</span>
@@ -140,8 +131,7 @@ export const OpenGraphBuilder = () => {
           <span>Chips: first two quoted terms, e.g. in der Schule / in die Schule</span>
           <span>Footer + watermark: stable BlauBerry branding</span>
         </div>
-        <pre className="log">{logs.join('\n')}</pre>
-      </aside>
+      </StatusPanel>
     </main>
   );
 };
