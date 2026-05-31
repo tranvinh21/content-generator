@@ -625,6 +625,40 @@ h1 {
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
 }
 
+.coverForm {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.coverForm label {
+  display: grid;
+  gap: 6px;
+}
+
+.coverForm label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.coverForm input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: 850 16px/1.35 "Manrope", ui-sans-serif, system-ui, sans-serif;
+  outline: none;
+  padding: 0 12px;
+}
+
+.coverForm input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
 .block {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -639,6 +673,35 @@ h1 {
   align-items: center;
   padding: 14px;
   border-bottom: 1px solid var(--line);
+}
+
+.resultToggle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: #fffaf0;
+}
+
+.resultToggle div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+}
+
+.resultToggle strong {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.resultToggle span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .index {
@@ -990,10 +1053,28 @@ h1 {
   gap: 16px;
 }
 
+.quizPage {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(500px, 660px) minmax(320px, 1fr) 360px;
+  gap: 16px;
+}
+
+.coverPage {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(360px, 520px) minmax(320px, 1fr) 360px;
+  gap: 16px;
+}
+
 .postComposer,
 .postLog,
 .contrastComposer,
-.readAlongComposer {
+.readAlongComposer,
+.quizComposer,
+.coverComposer {
   align-self: start;
   position: sticky;
   top: 12px;
@@ -1230,6 +1311,134 @@ h1 {
 }
 
 .readAlongPreview video {
+  aspect-ratio: 9 / 16;
+  max-height: 760px;
+  object-fit: contain;
+}
+
+.quizForm {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.quizForm label {
+  display: grid;
+  gap: 6px;
+}
+
+.quizForm label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.quizForm input,
+.quizForm textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: 850 16px/1.35 "Manrope", ui-sans-serif, system-ui, sans-serif;
+  outline: none;
+  padding: 11px 12px;
+}
+
+.quizForm input[type="file"] {
+  padding: 9px;
+  font-size: 13px;
+}
+
+.quizForm textarea {
+  min-height: 78px;
+  resize: vertical;
+}
+
+.quizForm input:focus,
+.quizForm textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.quizBlocks {
+  display: grid;
+  gap: 12px;
+}
+
+.quizBlock {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 12px;
+}
+
+.quizBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.quizBlockHeader strong {
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.quizOptions {
+  display: grid;
+  gap: 10px;
+}
+
+.quizIllustrationPreview {
+  display: grid;
+  grid-template-columns: 118px auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 10px;
+}
+
+.quizIllustrationPreview img {
+  width: 118px;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.quizOptionEdit {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 10px;
+}
+
+.quizCorrect {
+  display: flex !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.quizCorrect input {
+  width: 18px;
+  height: 18px;
+}
+
+.quizCorrect span {
+  color: var(--ink) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.quizPreview video {
   aspect-ratio: 9 / 16;
   max-height: 760px;
   object-fit: contain;

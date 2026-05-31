@@ -1,7 +1,6 @@
 'use client';
 
 import {useMemo, useRef, useState} from 'react';
-import Link from 'next/link';
 import type {NormalizedClip} from '../../../providers/normalized-clip';
 
 type WordBlock = {
@@ -10,6 +9,7 @@ type WordBlock = {
   clips: NormalizedClip[];
   selected: string[];
   searching: boolean;
+  resultsOpen: boolean;
 };
 
 const createBlock = (index: number): WordBlock => ({
@@ -18,6 +18,7 @@ const createBlock = (index: number): WordBlock => ({
   clips: [],
   selected: [],
   searching: false,
+  resultsOpen: false,
 });
 
 const appendLog = (setLogs: (updater: (logs: string[]) => string[]) => void, lines: string | string[]) => {
@@ -167,12 +168,7 @@ export const VocabularyBuilder = () => {
   const [blocks, setBlocks] = useState<WordBlock[]>(() => [createBlock(0)]);
   const [logs, setLogs] = useState<string[]>(['Ready. Add German words or phrases, search clips, then render.']);
   const [rendering, setRendering] = useState(false);
-  const [coverRendering, setCoverRendering] = useState(false);
   const [result, setResult] = useState<{downloadUrl: string; fileName: string} | null>(null);
-  const [coverResult, setCoverResult] = useState<{downloadUrl: string; fileName: string} | null>(null);
-  const [coverForm, setCoverForm] = useState({
-    title: '100 câu tiếng Đức cơ bản 🇩🇪',
-  });
   const selectedCount = useMemo(() => blocks.reduce((sum, block) => sum + block.selected.length, 0), [blocks]);
 
 
@@ -180,7 +176,14 @@ export const VocabularyBuilder = () => {
     setBlocks((current) => current.map((block) => (block.id === id ? updater(block) : block)));
   };
 
-  const addBlock = () => setBlocks((current) => [...current, createBlock(current.length)]);
+  const addBlock = () => {
+    const block = createBlock(blocks.length);
+    setBlocks((current) => [...current, block]);
+    requestAnimationFrame(() => {
+      document.getElementById(`block-${block.id}`)?.scrollIntoView({behavior: 'smooth', block: 'center'});
+      document.getElementById(`term-${block.id}`)?.focus();
+    });
+  };
 
   const searchBlock = async (block: WordBlock) => {
     if (!block.term.trim()) {
@@ -188,8 +191,8 @@ export const VocabularyBuilder = () => {
       return;
     }
 
-    updateBlock(block.id, (current) => ({...current, searching: true, clips: [], selected: []}));
-    appendLog(setLogs, `[${block.term}] Searching PlayPhrase + Filmot...`);
+    updateBlock(block.id, (current) => ({...current, searching: true, clips: [], selected: [], resultsOpen: false}));
+    appendLog(setLogs, `[${block.term}] Searching PlayPhrase + YouGlish + Filmot...`);
 
     try {
       const response = await fetch('/api/search', {
@@ -204,10 +207,10 @@ export const VocabularyBuilder = () => {
       }
 
       const clips = payload.clips ?? [];
-      updateBlock(block.id, (current) => ({...current, clips, searching: false}));
+      updateBlock(block.id, (current) => ({...current, clips, searching: false, resultsOpen: false}));
       appendLog(setLogs, [
         ...(payload.logs ?? [`[${block.term}] Found ${clips.length} clips`]),
-        `[${block.term}] Preview subtitles ready. Play clips before selecting.`,
+        `[${block.term}] ${clips.length} previews ready. Open results to choose 1-3 clips.`,
       ]);
     } catch (error) {
       updateBlock(block.id, (current) => ({...current, searching: false}));
@@ -235,39 +238,6 @@ export const VocabularyBuilder = () => {
         selectedClips: block.clips.filter((clip) => block.selected.includes(clip.id)),
       }))
       .filter((block) => block.term && block.selectedClips.length > 0);
-
-  const renderCover = async () => {
-    setCoverRendering(true);
-    setCoverResult(null);
-    appendLog(setLogs, 'Preparing cover render...');
-
-    try {
-      const response = await fetch('/api/render-cover', {
-        method: 'POST',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify({title: coverForm.title.trim() || '100 câu tiếng Đức cơ bản 🇩🇪'}),
-      });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        downloadUrl?: string;
-        fileName?: string;
-        logs?: string[];
-        message?: string;
-      };
-
-      appendLog(setLogs, payload.logs ?? []);
-
-      if (!response.ok || !payload.ok || !payload.downloadUrl || !payload.fileName) {
-        throw new Error(payload.message ?? 'Cover render failed');
-      }
-
-      setCoverResult({downloadUrl: payload.downloadUrl, fileName: payload.fileName});
-    } catch (error) {
-      appendLog(setLogs, `Cover render failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setCoverRendering(false);
-    }
-  };
 
   const renderFinal = async () => {
     setRendering(true);
@@ -311,9 +281,6 @@ export const VocabularyBuilder = () => {
             <h1>100 câu tiếng Đức cơ bản 🇩🇪</h1>
           </div>
           <div className="toolbar">
-            <Link className="button secondary" href="/settings">
-              Settings
-            </Link>
             <button className="button secondary" type="button" onClick={addBlock}>
               Add block
             </button>
@@ -323,30 +290,14 @@ export const VocabularyBuilder = () => {
           </div>
         </header>
 
-
-        <section className="coverEditor">
-          <div>
-            <p className="eyebrow">Cover</p>
-            <h2>Customize cover title</h2>
-          </div>
-          <input
-            className="coverTitleInput"
-            value={coverForm.title}
-            placeholder="100 câu tiếng Đức cơ bản 🇩🇪"
-            onChange={(event) => setCoverForm({title: event.target.value})}
-          />
-          <button className="button secondary" type="button" disabled={coverRendering} onClick={renderCover}>
-            {coverRendering ? 'Generating cover' : 'Generate cover'}
-          </button>
-        </section>
-
         <div className="blocks">
           {blocks.map((block, index) => (
-            <article className="block" key={block.id}>
+            <article className="block" id={`block-${block.id}`} key={block.id}>
               <div className="blockTop">
                 <div className="index">{index + 1}</div>
                 <input
                   className="termInput"
+                  id={`term-${block.id}`}
                   value={block.term}
                   placeholder="German word or phrase"
                   onChange={(event) => updateBlock(block.id, (current) => ({...current, term: event.target.value}))}
@@ -356,9 +307,23 @@ export const VocabularyBuilder = () => {
                 </button>
               </div>
 
-              {block.clips.length === 0 ? (
-                <div className="empty">Search results will appear here. Select 1-3 clips for this block.</div>
-              ) : (
+              {block.clips.length > 0 ? (
+                <div className="resultToggle">
+                  <div>
+                    <strong>{block.clips.length} clips ready</strong>
+                    <span>{block.selected.length}/3 selected</span>
+                  </div>
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => updateBlock(block.id, (current) => ({...current, resultsOpen: !current.resultsOpen}))}
+                  >
+                    {block.resultsOpen ? 'Hide clips' : 'Review clips'}
+                  </button>
+                </div>
+              ) : null}
+
+              {block.clips.length > 0 && block.resultsOpen ? (
                 <div className="clipSections">
                   {providerSections.map((section) => {
                     const sectionClips = block.clips.filter((clip) => clip.provider === section.provider);
@@ -412,7 +377,7 @@ export const VocabularyBuilder = () => {
                     );
                   })}
                 </div>
-              )}
+              ) : null}
             </article>
           ))}
         </div>
@@ -426,14 +391,6 @@ export const VocabularyBuilder = () => {
           </div>
         </header>
         <pre className="log">{logs.join('\n')}</pre>
-        {coverResult ? (
-          <div className="result">
-            <img src={`${coverResult.downloadUrl}?t=${Date.now()}`} alt="Generated cover" />
-            <a className="download" href={coverResult.downloadUrl} download={coverResult.fileName}>
-              Download cover PNG
-            </a>
-          </div>
-        ) : null}
         {result ? (
           <div className="result">
             <video src={`${result.downloadUrl}?t=${Date.now()}`} controls />

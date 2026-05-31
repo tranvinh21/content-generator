@@ -31,6 +31,18 @@ export const featureNavItems: FeatureNavItem[] = [
     group: 'Video',
   },
   {
+    href: '/quiz',
+    label: 'Quiz Reveal',
+    description: 'German multiple choice videos with timed answer reveal',
+    group: 'Video',
+  },
+  {
+    href: '/cover',
+    label: 'TikTok Cover',
+    description: 'Generate reusable vertical cover images',
+    group: 'Publishing',
+  },
+  {
     href: '/opengraph',
     label: 'OpenGraph',
     description: 'Create horizontal blog share images',

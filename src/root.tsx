@@ -9,6 +9,7 @@ import {EngagementCardImage} from './engagement-card-image';
 import {FormalContrastImage} from './formal-contrast-image';
 import {OpenGraphBlogImage} from './opengraph-blog-image';
 import {PhraseVideo} from './phrase-video';
+import {QuizVideo, getQuizVideoDuration} from './quiz-video';
 import {ReadAlongVideo, getReadAlongDuration} from './read-along-video';
 import {VocabularyPostImage} from './post-image';
 import {getVocabularyTikTokDuration, VocabularyCover, VocabularyTikTok} from './vocabulary-tiktok';
@@ -16,6 +17,7 @@ import {DEFAULT_FPS, DEFAULT_GAP_MS, getVideoDurationInFrames} from './timing';
 import type {PhraseVideoProps} from './types';
 import type {VocabularyTikTokProps} from './features/vocabulary/types';
 import type {ReadAlongVideoProps} from './features/read-along/types';
+import type {QuizVideoProps} from './features/quiz/types';
 
 const defaultProps: PhraseVideoProps = {
   clips: sampleClips,
@@ -39,6 +41,24 @@ const readAlongDefaultProps: ReadAlongVideoProps = {
   ],
   durationFrames: 360,
   useEndCard: true,
+};
+
+const quizDefaultProps: QuizVideoProps = {
+  title: 'Chọn đáp án đúng',
+  items: [
+    {
+      questionDe: 'Welche Antwort passt zu "Keine Sorge"?',
+      questionVi: 'Câu nào hợp với "Keine Sorge"?',
+      options: [
+        {de: 'Mach dir keine Sorgen.', vi: 'Đừng lo.'},
+        {de: 'Ich habe großen Hunger.', vi: 'Tôi rất đói.'},
+        {de: 'Bis später.', vi: 'Hẹn gặp lại.'},
+      ],
+      correctIndex: 0,
+      audioFrames: 72,
+      correctAudioFrames: 42,
+    },
+  ],
 };
 
 export const Root: React.FC = () => {
@@ -107,6 +127,20 @@ export const Root: React.FC = () => {
         defaultProps={readAlongDefaultProps}
         calculateMetadata={({props}) => ({
           durationInFrames: getReadAlongDuration(props),
+          width: 1080,
+          height: 1920,
+        })}
+      />
+      <Composition
+        id="QuizVideo"
+        component={QuizVideo}
+        durationInFrames={180}
+        fps={DEFAULT_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={quizDefaultProps}
+        calculateMetadata={({props}) => ({
+          durationInFrames: getQuizVideoDuration(props),
           width: 1080,
           height: 1920,
         })}
