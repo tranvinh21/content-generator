@@ -35,9 +35,11 @@ export const getClipFrames = (clip: RenderableClip) => {
   return Math.max(minClipFrames, frames);
 };
 
+const getIntroFrames = (block: RenderableWordBlock) => Math.max(introFrames, block.avatarIntro?.durationFrames ?? introFrames);
+
 export const getBlockFrames = (block: RenderableWordBlock) => {
   return (
-    introFrames +
+    getIntroFrames(block) +
     block.clips.reduce((total, clip, index) => total + getClipFrames(clip) + (index === 0 ? 0 : clipGapFrames), 0) +
     blockGapFrames
   );
@@ -195,15 +197,75 @@ export const VocabularyCover: React.FC<Pick<VocabularyTikTokProps, 'title' | 'wa
   );
 };
 
-const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationInFrames: number}> = ({block, title, durationInFrames}) => {
+const BasicAvatar: React.FC<{src?: string}> = ({src}) => {
+  const frame = useCurrentFrame();
+  const bob = Math.sin(frame / 9) * 8;
+  const mouthScale = interpolate(Math.sin(frame / 3), [-1, 1], [0.35, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  if (src) {
+    return (
+      <Img
+        src={src}
+        style={{
+          width: 330,
+          height: 330,
+          objectFit: 'contain',
+          transform: `translateY(${bob}px)`,
+          filter: 'drop-shadow(0 18px 30px rgba(17, 24, 39, 0.18))',
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        background: 'linear-gradient(180deg, #bfe1ff 0%, #edf7ff 100%)',
+        border: '6px solid rgba(255,255,255,0.8)',
+        boxShadow: '0 22px 40px rgba(17,24,39,0.16)',
+        position: 'relative',
+        transform: `translateY(${bob}px)`,
+      }}
+    >
+      <div style={{position: 'absolute', top: 92, left: 82, width: 34, height: 34, borderRadius: 17, background: '#111827'}} />
+      <div style={{position: 'absolute', top: 92, right: 82, width: 34, height: 34, borderRadius: 17, background: '#111827'}} />
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: 176,
+          width: 78,
+          height: 24,
+          borderRadius: 999,
+          background: '#ef4444',
+          transform: `translateX(-50%) scaleY(${mouthScale})`,
+        }}
+      />
+    </div>
+  );
+};
+
+const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationInFrames: number; avatarUrl?: string}> = ({
+  block,
+  title,
+  durationInFrames,
+  avatarUrl,
+}) => {
   const frame = useCurrentFrame();
   const opacity = sceneOpacity(frame, durationInFrames, introTransitionFrames);
   const translateY = interpolate(frame, [0, durationInFrames], [14, -4], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const didVideoUrl = block.avatarIntro?.provider === 'did' ? block.avatarIntro.videoUrl : undefined;
 
   return (
     <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', opacity, padding: 70, transform: `translateY(${translateY}px)`}}>
-      {block.voiceUrl ? <Audio src={block.voiceUrl} /> : null}
-      <div style={{position: 'absolute', top: tiktokTopSafe, left: 70, right: 70, textAlign: 'center', color: '#111827'}}>
+      {!didVideoUrl && block.voiceUrl ? <Audio src={block.voiceUrl} /> : null}
+      <div style={{position: 'absolute', top: tiktokTopSafe, left: 70, right: 70, textAlign: 'center', color: '#111827', zIndex: 4}}>
         <div
           style={{
             fontSize: 56,
@@ -214,17 +276,52 @@ const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationIn
           {title}
         </div>
       </div>
+
       <div
         style={{
+          position: 'absolute',
+          top: 360,
+          left: 0,
+          right: 0,
+          height: 660,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2,
+        }}
+      >
+        {didVideoUrl ? (
+          <OffthreadVideo
+            src={didVideoUrl}
+            volume={(f) => sceneAudioVolume(f, durationInFrames)}
+            style={{
+              width: 640,
+              height: 640,
+              objectFit: 'cover',
+              borderRadius: 28,
+              boxShadow: '0 24px 54px rgba(17,24,39,0.24)',
+            }}
+          />
+        ) : (
+          <BasicAvatar src={avatarUrl} />
+        )}
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 1040,
+          left: 80,
+          right: 80,
           color: '#111827',
           textAlign: 'center',
           textShadow: '0 2px 0 rgba(255,255,255,0.8)',
-          marginTop: 90,
+          zIndex: 4,
         }}
       >
-        <div style={{fontSize: 96, fontWeight: 800, lineHeight: 1.03}}>{block.term}</div>
-        <div style={{marginTop: 18, fontSize: 42, fontWeight: 700}}>{block.ipa}</div>
-        <div style={{marginTop: 18, fontSize: 46, fontWeight: 800}}>{block.translationVi}</div>
+        <div style={{fontSize: 88, fontWeight: 800, lineHeight: 1.03, textWrap: 'balance'}}>{block.term}</div>
+        <div style={{marginTop: 16, fontSize: 38, fontWeight: 700}}>{block.ipa}</div>
+        <div style={{marginTop: 16, fontSize: 40, fontWeight: 800, lineHeight: 1.18, textWrap: 'balance'}}>{block.translationVi}</div>
       </div>
     </AbsoluteFill>
   );
@@ -316,13 +413,14 @@ export const VocabularyTikTok: React.FC<VocabularyTikTokProps> = (props) => {
 
   props.blocks.forEach((block, blockIndex) => {
     const blockStart = cursor;
+    const introDuration = getIntroFrames(block);
 
     sequences.push(
-      <Sequence key={`${block.id}-intro`} from={blockStart} durationInFrames={introFrames}>
-        <IntroCard block={block} title={props.title} durationInFrames={introFrames} />
+      <Sequence key={`${block.id}-intro`} from={blockStart} durationInFrames={introDuration}>
+        <IntroCard block={block} title={props.title} durationInFrames={introDuration} avatarUrl={props.avatarUrl} />
       </Sequence>,
     );
-    cursor += introFrames;
+    cursor += introDuration;
 
     block.clips.forEach((clip, clipIndex) => {
       const duration = getClipFrames(clip);

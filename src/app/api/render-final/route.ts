@@ -1,5 +1,5 @@
 import {existsSync} from 'node:fs';
-import {writeFile} from 'node:fs/promises';
+import {mkdir, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {spawn} from 'node:child_process';
 import {NextResponse} from 'next/server';
@@ -13,6 +13,7 @@ import {
   materializeClip,
   translateBlock,
 } from '../../../features/vocabulary/enrich';
+import {generateDidAvatarIntro} from '../../../features/vocabulary/avatar';
 import type {NormalizedClip} from '../../../providers/normalized-clip';
 import type {RenderableWordBlock, VocabularyTikTokProps} from '../../../features/vocabulary/types';
 
@@ -93,6 +94,28 @@ export const buildRenderableProps = async (
     }
     const voiceUrl = getServedJobUrl(voice.url, requestUrl);
 
+    logs.push(`[${block.term}] Preparing avatar intro...`);
+    const avatarOutputPath = join(jobDir, 'avatar', `block-${blockIndex + 1}.mp4`);
+    await mkdir(join(jobDir, 'avatar'), {recursive: true});
+    const didAvatar = await generateDidAvatarIntro({text: block.term, outputPath: avatarOutputPath});
+    const avatarIntro =
+      didAvatar.ok
+        ? {
+            provider: 'did' as const,
+            videoUrl: getRequiredServedJobUrl(didAvatar.outputPath, requestUrl),
+            durationFrames: (await getVideoDurationFrames(didAvatar.outputPath)) ?? 90,
+          }
+        : {
+            provider: 'remotion-basic' as const,
+            durationFrames: 90,
+          };
+    if (didAvatar.ok) {
+      logs.push(`[${block.term}] D-ID avatar ready.`);
+    } else {
+      logs.push(`[${block.term}] D-ID skipped, using Remotion avatar fallback.`);
+      logs.push(`[${block.term}] D-ID reason: ${didAvatar.error}`);
+    }
+
     const clips = [];
     for (const [clipIndex, clip] of selectedClips.entries()) {
       logs.push(`[${block.term}] Preparing clip ${clipIndex + 1}/${selectedClips.length} (${clip.provider})...`);
@@ -119,6 +142,7 @@ export const buildRenderableProps = async (
       ipa,
       translationVi: translation.termTranslation,
       voiceUrl,
+      avatarIntro,
       clips,
     });
   }
@@ -142,6 +166,7 @@ export const buildRenderableProps = async (
     'background.mov',
   );
   const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
+  const avatarPath = firstExistingAsset('avatar.png', 'avatar.webp', 'avatar.jpg', 'avatar.jpeg');
   const outroPath = firstExistingAsset('outro.mp4', 'outtro.mp4', 'outro-background.mp4', 'outtro-background.mp4', 'out.mp4');
 
   return {
@@ -149,6 +174,7 @@ export const buildRenderableProps = async (
     blocks,
     backgroundUrl: getServedAssetUrl(backgroundPath, requestUrl),
     watermarkUrl: getServedAssetUrl(watermarkPath, requestUrl),
+    avatarUrl: getServedAssetUrl(avatarPath, requestUrl),
     outroUrl: getServedAssetUrl(outroPath, requestUrl),
     outroFrames: outroPath ? await getVideoDurationFrames(outroPath) : undefined,
   };

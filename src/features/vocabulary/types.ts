@@ -20,6 +20,11 @@ export type RenderableWordBlock = {
   ipa: string;
   translationVi: string;
   voiceUrl?: string;
+  avatarIntro?: {
+    provider: 'did' | 'remotion-basic';
+    videoUrl?: string;
+    durationFrames?: number;
+  };
   clips: RenderableClip[];
 };
 
@@ -28,6 +33,7 @@ export type VocabularyTikTokProps = {
   blocks: RenderableWordBlock[];
   backgroundUrl?: string;
   watermarkUrl?: string;
+  avatarUrl?: string;
   outroUrl?: string;
   outroFrames?: number;
 };

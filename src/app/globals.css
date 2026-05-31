@@ -253,7 +253,7 @@ h1 {
 
 .settings {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   margin: 0 16px 16px;
   padding: 14px;
   border: 1px solid var(--line);
@@ -261,10 +261,56 @@ h1 {
   background: #fffaf0;
 }
 
+.settingsHeader {
+  display: grid;
+  grid-template-columns: minmax(180px, auto) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.settingsHeader h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.settingsCard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fffdf8;
+}
+
+.settingsCardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.settingsCardHeader h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.12;
+}
+
 .settingsStatus {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .settingsStatus span {
@@ -286,7 +332,7 @@ h1 {
 
 .settingsTextarea {
   width: 100%;
-  min-height: 130px;
+  min-height: 210px;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
@@ -295,9 +341,253 @@ h1 {
   font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.settingsTextarea.compact {
+  min-height: 132px;
+}
+
 .settingsTextarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.providerFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.providerFieldGrid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.providerFieldGrid input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+  text-transform: none;
+  outline: none;
+}
+
+.providerFieldGrid input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.providerReconnect {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.providerReconnect strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.providerReconnectActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.didPicker {
+  display: grid;
+  gap: 10px;
+}
+
+.didPickerTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.didPickerTop strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.didPresenterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  max-height: 310px;
+  overflow: auto;
+}
+
+.didPresenter {
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  min-height: 145px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+
+.didPresenter.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.didPresenter img,
+.didAvatarFallback {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e8f2ff;
+}
+
+.didAvatarFallback {
+  display: grid;
+  place-items: center;
+  color: #2f6df6;
+  font-size: 28px;
+  font-weight: 850;
+}
+
+.didPresenter span {
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.didPresenter small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.didConfigGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.didConfigGrid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.didConfigGrid input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+  text-transform: none;
+  outline: none;
+}
+
+.didConfigGrid input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.didActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.didCredits {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #111820;
+  color: #f8fafc;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.settingsPage {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+}
+
+.settingsPanel {
+  align-self: start;
+}
+
+.settingsLog {
+  align-self: start;
+  position: sticky;
+  top: 12px;
+}
+
+.settingsSections {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 16px;
+}
+
+.settingsSection {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fffaf0;
+}
+
+.settingsSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.settingsSectionHeader h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.settingsSectionHeader strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .coverEditor {
@@ -376,11 +666,46 @@ h1 {
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
 }
 
+.clipSections {
+  display: grid;
+  gap: 16px;
+  padding: 14px;
+}
+
+.clipSection {
+  display: grid;
+  gap: 10px;
+}
+
+.clipSection + .clipSection {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.clipSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.clipSectionHeader h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.clipSectionHeader span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .clips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
-  padding: 14px;
 }
 
 .clip {
@@ -413,14 +738,17 @@ h1 {
 }
 
 .clipPreview video,
+.clipPreview img,
 .thumb {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: #111;
+  border: 0;
 }
 
-.clipPreview video {
+.clipPreview video,
+.clipPreview img {
   display: block;
 }
 
@@ -450,23 +778,36 @@ h1 {
 
 .previewSubtitle {
   pointer-events: none;
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 3px 5px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.78) 100%);
   color: white;
   font-size: 12px;
   font-weight: 900;
   line-height: 1.25;
-  padding: 26px 8px 7px;
   text-align: center;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+.clipPreview .previewSubtitle {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.78) 100%);
+  padding: 26px 8px 7px;
+}
+
+.previewSubtitle.external {
+  position: static;
+  min-height: 44px;
+  align-items: center;
+  margin-top: 6px;
+  border-radius: 6px;
+  background: #111;
+  padding: 8px;
 }
 
 .previewSubtitle span.active {
@@ -588,6 +929,40 @@ h1 {
 
   .coverEditor {
     grid-template-columns: 1fr;
+  }
+
+  .settingsHeader,
+  .settingsGrid,
+  .providerFieldGrid,
+  .didConfigGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .settingsStatus {
+    justify-content: flex-start;
+  }
+
+  .settingsCardHeader,
+  .providerReconnect {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .providerReconnectActions {
+    justify-content: flex-start;
+  }
+
+  .settingsPage {
+    grid-template-columns: 1fr;
+  }
+
+  .settingsLog {
+    position: static;
+  }
+
+  .settingsSectionHeader {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

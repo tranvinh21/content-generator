@@ -53,10 +53,12 @@ const parseFilmotHtml = (html: string, query: string): FilmotSearchResultInput[]
   return Array.from(results.values()).slice(0, 20);
 };
 
-export const searchFilmot = async (query: string, language = 'de') => {
+export const searchFilmot = async (query: string, language = 'de', override?: {cookie?: string; userAgent?: string}) => {
   const config = await getRuntimeConfig();
+  const filmotCookie = override?.cookie ?? config.filmotCookie;
+  const filmotUserAgent = override?.userAgent ?? config.filmotUserAgent;
 
-  if (!config.filmotCookie) {
+  if (!filmotCookie) {
     return {
       clips: [],
       log: `[${query}] Filmot skipped: FILMOT_COOKIE is not set`,
@@ -71,14 +73,14 @@ export const searchFilmot = async (query: string, language = 'de') => {
 
   const response = await fetch(searchUrl, {
     headers: {
-      cookie: config.filmotCookie,
-      'user-agent': config.filmotUserAgent,
+      cookie: filmotCookie,
+      'user-agent': filmotUserAgent,
       accept: 'text/html,application/xhtml+xml',
     },
   });
   const html = await response.text();
 
-  if (html.includes('h-captcha') || html.includes('captcha-validate')) {
+  if (response.url.includes('/captcha-verify') || html.includes('h-captcha') || html.includes('captcha-validate')) {
     return {
       clips: [],
       log: `[${query}] Filmot needs reconnect: captcha page returned`,

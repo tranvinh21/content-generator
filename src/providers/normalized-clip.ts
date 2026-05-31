@@ -1,4 +1,4 @@
-export type ClipProvider = 'playphrase' | 'filmot';
+export type ClipProvider = 'playphrase' | 'filmot' | 'youglish';
 
 export type ClipMediaKind = 'direct-mp4' | 'youtube-segment';
 
@@ -79,5 +79,14 @@ export type FilmotSearchResultInput = {
   endSeconds?: number;
   snippetText: string;
   resultUrl?: string;
+  raw?: unknown;
+};
+
+export type YouglishSearchResultInput = {
+  videoId: string;
+  startSeconds: number;
+  endSeconds?: number;
+  displayText: string;
+  resultUrl: string;
   raw?: unknown;
 };

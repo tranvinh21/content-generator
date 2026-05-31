@@ -12,6 +12,16 @@ const settingsSchema = z.object({
   playphraseCsrfToken: z.string().optional(),
   filmotCookie: z.string().optional(),
   filmotUserAgent: z.string().optional(),
+  openaiApiKey: z.string().optional(),
+  openaiModel: z.string().optional(),
+  openaiUrl: z.string().optional(),
+  elevenLabsApiKey: z.string().optional(),
+  elevenLabsVoiceId: z.string().optional(),
+  elevenLabsModelId: z.string().optional(),
+  didApiKey: z.string().optional(),
+  didSourceUrl: z.string().optional(),
+  didVoiceId: z.string().optional(),
+  didPresenterId: z.string().optional(),
 });
 
 export type LocalSettings = z.infer<typeof settingsSchema>;
@@ -42,12 +52,16 @@ export const getRuntimeConfig = async () => {
   const local = await readLocalSettings();
 
   return {
-    openaiApiKey: process.env.OPENAI_API_KEY ?? '',
-    openaiModel: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
-    openaiUrl: process.env.OPENAI_URL ?? 'https://api.openai.com/v1',
-    elevenLabsApiKey: process.env.ELEVENLABS_API_KEY ?? '',
-    elevenLabsVoiceId: process.env.ELEVENLABS_VOICE_ID ?? '',
-    elevenLabsModelId: process.env.ELEVENLABS_MODEL_ID ?? 'eleven_multilingual_v2',
+    openaiApiKey: local.openaiApiKey ?? process.env.OPENAI_API_KEY ?? '',
+    openaiModel: local.openaiModel ?? process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
+    openaiUrl: local.openaiUrl ?? process.env.OPENAI_URL ?? 'https://api.openai.com/v1',
+    elevenLabsApiKey: local.elevenLabsApiKey ?? process.env.ELEVENLABS_API_KEY ?? '',
+    elevenLabsVoiceId: local.elevenLabsVoiceId ?? process.env.ELEVENLABS_VOICE_ID ?? '',
+    elevenLabsModelId: local.elevenLabsModelId ?? process.env.ELEVENLABS_MODEL_ID ?? 'eleven_multilingual_v2',
+    didApiKey: local.didApiKey ?? process.env.DID_API_KEY ?? '',
+    didSourceUrl: local.didSourceUrl ?? process.env.DID_SOURCE_URL ?? '',
+    didVoiceId: local.didVoiceId ?? process.env.DID_VOICE_ID ?? 'de-DE-KatjaNeural',
+    didPresenterId: local.didPresenterId ?? process.env.DID_PRESENTER_ID ?? '',
     playphraseAuthorization: local.playphraseAuthorization ?? process.env.PLAYPHRASE_AUTHORIZATION ?? 'Token',
     playphraseCookie: local.playphraseCookie ?? process.env.PLAYPHRASE_COOKIE ?? '',
     playphraseCsrfToken: local.playphraseCsrfToken ?? process.env.PLAYPHRASE_CSRF_TOKEN ?? '',
@@ -98,6 +112,7 @@ export const getConfigStatus = async () => {
   return {
     openai: Boolean(config.openaiApiKey),
     elevenLabs: Boolean(config.elevenLabsApiKey && config.elevenLabsVoiceId),
+    did: Boolean(config.didApiKey && (config.didPresenterId || config.didSourceUrl)),
     playphrase: Boolean(config.playphraseCookie || config.playphraseAuthorization),
     filmot: Boolean(config.filmotCookie),
     macOsVoiceFallback: true,
