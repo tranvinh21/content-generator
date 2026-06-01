@@ -217,7 +217,7 @@ export const QuizBuilder = () => {
           <div className="postHints">
             <span>{stripClientFields(items).length} ready questions</span>
             <span>Question voice: ElevenLabs or macOS fallback</span>
-            <span>2.5s tick before reveal</span>
+            <span>3s tick, longer answer view</span>
             <span>1080 x 1920 MP4</span>
           </div>
         </div>

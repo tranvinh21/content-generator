@@ -4,7 +4,7 @@ import type {QuizItem, QuizVideoProps} from './features/quiz/types';
 
 const FPS = 30;
 const THINK_FRAMES = 90;
-const REVEAL_FRAMES = 36;
+const REVEAL_FRAMES = 78;
 const DEFAULT_OUTRO_FRAMES = 90;
 const MIN_QUESTION_AUDIO_FRAMES = 42;
 const SCENE_TRANSITION_FRAMES = 12;
@@ -17,7 +17,7 @@ const isImageSource = (src: string) => /\.(avif|jpe?g|png|webp)(\?|$)/i.test(src
 export const getQuizItemDuration = (item: QuizItem) =>
   Math.max(MIN_QUESTION_AUDIO_FRAMES, item.audioFrames || 0) +
   THINK_FRAMES +
-  Math.max(REVEAL_FRAMES, (item.correctAudioFrames ?? 0) + CORRECT_VOICE_DELAY_FRAMES + 18) +
+  Math.max(REVEAL_FRAMES, (item.correctAudioFrames ?? 0) + CORRECT_VOICE_DELAY_FRAMES + 42) +
   QUESTION_GAP_FRAMES;
 
 export const getQuizVideoDuration = (props: QuizVideoProps) =>
@@ -99,6 +99,14 @@ const QuizScene: React.FC<{
     extrapolateRight: 'clamp',
   });
   const revealScale = interpolate(frame, [revealStart, revealStart + 10], [0.96, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const translationOpacity = interpolate(frame, [revealStart + 4, revealStart + 16], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const translationTranslateY = interpolate(frame, [revealStart + 4, revealStart + 16], [8, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -196,9 +204,19 @@ const QuizScene: React.FC<{
           <div style={{fontSize: item.questionDe.length > 70 ? 45 : 56, fontWeight: 850, lineHeight: 1.12}}>
             {item.questionDe}
           </div>
-          {item.questionVi ? (
-            <div style={{fontSize: 32, fontWeight: 750, lineHeight: 1.25, color: '#39434d'}}>{item.questionVi}</div>
-          ) : null}
+          <div
+            style={{
+              minHeight: 40,
+              fontSize: 32,
+              fontWeight: 750,
+              lineHeight: 1.25,
+              color: '#39434d',
+              opacity: item.questionVi ? 1 : 0,
+              transform: 'translateY(0)',
+            }}
+          >
+            {item.questionVi}
+          </div>
         </div>
 
         {item.illustrationUrl ? (
@@ -254,7 +272,19 @@ const QuizScene: React.FC<{
                 </div>
                 <div style={{display: 'grid', gap: 7}}>
                   <div style={{fontSize: option.de.length > 46 ? 34 : 42, fontWeight: 800, lineHeight: 1.12}}>{option.de}</div>
-                  <div style={{fontSize: 27, fontWeight: 700, color: '#39434d', lineHeight: 1.18}}>{option.vi}</div>
+                  <div
+                    style={{
+                      minHeight: 32,
+                      fontSize: 27,
+                      fontWeight: 700,
+                      color: '#39434d',
+                      lineHeight: 1.18,
+                      opacity: option.vi ? translationOpacity : 0,
+                      transform: `translateY(${translationTranslateY}px)`,
+                    }}
+                  >
+                    {option.vi}
+                  </div>
                 </div>
               </div>
             );
