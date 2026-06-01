@@ -19,6 +19,7 @@ const blockSchema = z.object({
 
 const schema = z.object({
   blocks: z.array(blockSchema).min(1).max(50),
+  includeWatermark: z.boolean().optional().default(true),
 });
 
 const runStill = (outputPath: string, propsPath: string) =>
@@ -67,7 +68,7 @@ export const POST = async (request: Request) => {
     );
     const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
     const backgroundUrl = getServedAssetUrl(backgroundPath, request.url);
-    const watermarkUrl = getServedAssetUrl(watermarkPath, request.url);
+    const watermarkUrl = input.includeWatermark ? getServedAssetUrl(watermarkPath, request.url) : undefined;
     const images = [];
 
     for (const [index, block] of input.blocks.entries()) {

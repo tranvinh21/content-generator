@@ -9,6 +9,7 @@ import {EngagementCardImage} from './engagement-card-image';
 import {FormalContrastImage} from './formal-contrast-image';
 import {OpenGraphBlogImage} from './opengraph-blog-image';
 import {PhraseVideo} from './phrase-video';
+import {QuizChoiceImage} from './quiz-choice-image';
 import {QuizVideo, getQuizVideoDuration} from './quiz-video';
 import {ReadAlongVideo, getReadAlongDuration} from './read-along-video';
 import {VocabularyPostImage} from './post-image';
@@ -144,6 +145,24 @@ export const Root: React.FC = () => {
           width: 1080,
           height: 1920,
         })}
+      />
+      <Composition
+        id="QuizChoiceImage"
+        component={QuizChoiceImage}
+        durationInFrames={1}
+        fps={DEFAULT_FPS}
+        width={1080}
+        height={1350}
+        defaultProps={{
+          title: 'Chọn đáp án trong comment',
+          questionDe: 'Welche Antwort passt zu "Keine Sorge"?',
+          questionVi: 'Câu nào hợp với "Keine Sorge"?',
+          options: [
+            {de: 'Mach dir keine Sorgen.', vi: 'Đừng lo.'},
+            {de: 'Ich habe großen Hunger.', vi: 'Tôi rất đói.'},
+            {de: 'Bis später.', vi: 'Hẹn gặp lại.'},
+          ],
+        }}
       />
       <Composition
         id="VocabularyPostImage"

@@ -3,12 +3,13 @@ import {AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, useCurr
 import type {QuizItem, QuizVideoProps} from './features/quiz/types';
 
 const FPS = 30;
-const THINK_FRAMES = 75;
+const THINK_FRAMES = 90;
 const REVEAL_FRAMES = 36;
 const DEFAULT_OUTRO_FRAMES = 90;
 const MIN_QUESTION_AUDIO_FRAMES = 42;
 const SCENE_TRANSITION_FRAMES = 12;
-const QUESTION_GAP_FRAMES = 10;
+const QUESTION_GAP_FRAMES = 18;
+const CORRECT_VOICE_DELAY_FRAMES = 20;
 const fontFamily = '"Manrope", ui-sans-serif, system-ui, sans-serif';
 const optionLabels = ['A', 'B', 'C'];
 const isImageSource = (src: string) => /\.(avif|jpe?g|png|webp)(\?|$)/i.test(src);
@@ -16,7 +17,7 @@ const isImageSource = (src: string) => /\.(avif|jpe?g|png|webp)(\?|$)/i.test(src
 export const getQuizItemDuration = (item: QuizItem) =>
   Math.max(MIN_QUESTION_AUDIO_FRAMES, item.audioFrames || 0) +
   THINK_FRAMES +
-  Math.max(REVEAL_FRAMES, (item.correctAudioFrames ?? 0) + 18) +
+  Math.max(REVEAL_FRAMES, (item.correctAudioFrames ?? 0) + CORRECT_VOICE_DELAY_FRAMES + 18) +
   QUESTION_GAP_FRAMES;
 
 export const getQuizVideoDuration = (props: QuizVideoProps) =>
@@ -74,8 +75,9 @@ const QuizScene: React.FC<{
   title: string;
   durationInFrames: number;
   tickAudioUrl?: string;
+  successAudioUrl?: string;
   watermarkUrl?: string;
-}> = ({item, index, count, title, durationInFrames, tickAudioUrl, watermarkUrl}) => {
+}> = ({item, index, count, title, durationInFrames, tickAudioUrl, successAudioUrl, watermarkUrl}) => {
   const frame = useCurrentFrame();
   const audioFrames = Math.max(MIN_QUESTION_AUDIO_FRAMES, item.audioFrames || 0);
   const revealStart = audioFrames + THINK_FRAMES;
@@ -102,10 +104,10 @@ const QuizScene: React.FC<{
   });
   const hasImage = Boolean(item.illustrationUrl);
   const contentTop = hasImage ? 286 : 430;
-  const contentGap = hasImage ? 22 : 40;
+  const contentGap = hasImage ? 30 : 54;
   const questionMinHeight = hasImage ? 176 : 230;
   const optionMinHeight = hasImage ? 130 : 158;
-  const optionGap = hasImage ? 14 : 24;
+  const optionGap = hasImage ? 22 : 34;
 
   return (
     <AbsoluteFill
@@ -123,8 +125,16 @@ const QuizScene: React.FC<{
           <Audio src={tickAudioUrl} endAt={THINK_FRAMES} />
         </Sequence>
       ) : null}
+      {successAudioUrl ? (
+        <Sequence from={revealStart} durationInFrames={Math.max(1, REVEAL_FRAMES)}>
+          <Audio src={successAudioUrl} endAt={REVEAL_FRAMES} />
+        </Sequence>
+      ) : null}
       {item.correctAudioUrl ? (
-        <Sequence from={revealStart} durationInFrames={Math.max(1, item.correctAudioFrames ?? REVEAL_FRAMES)}>
+        <Sequence
+          from={revealStart + CORRECT_VOICE_DELAY_FRAMES}
+          durationInFrames={Math.max(1, item.correctAudioFrames ?? REVEAL_FRAMES)}
+        >
           <Audio src={item.correctAudioUrl} endAt={Math.max(1, item.correctAudioFrames ?? REVEAL_FRAMES)} />
         </Sequence>
       ) : null}
@@ -284,6 +294,7 @@ export const QuizVideo: React.FC<QuizVideoProps> = (props) => {
               durationInFrames={duration}
               index={index}
               item={item}
+              successAudioUrl={props.successAudioUrl}
               tickAudioUrl={props.tickAudioUrl}
               title={props.title}
               watermarkUrl={props.watermarkUrl}

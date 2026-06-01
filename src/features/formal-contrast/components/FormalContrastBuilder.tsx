@@ -44,6 +44,7 @@ export const FormalContrastBuilder = () => {
   const [logs, setLogs] = useState<string[]>(['Ready. Each block will generate one formal contrast image.']);
   const [rendering, setRendering] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
+  const [includeWatermark, setIncludeWatermark] = useState(true);
 
   const validBlocks = blocks.filter(
     (block) => block.informalGerman.trim() && block.informalVi.trim() && block.formalGerman.trim() && block.formalVi.trim(),
@@ -89,6 +90,7 @@ export const FormalContrastBuilder = () => {
         headers: {'content-type': 'application/json'},
         body: JSON.stringify({
           blocks: validBlocks.map(({id: _id, illustrationName: _illustrationName, ...block}) => block),
+          includeWatermark,
         }),
       });
       const payload = (await response.json()) as {
@@ -180,6 +182,13 @@ export const FormalContrastBuilder = () => {
             </button>
           </div>
         </header>
+
+        <div className="contrastOptions">
+          <label className="checkboxLine">
+            <input checked={includeWatermark} type="checkbox" onChange={(event) => setIncludeWatermark(event.target.checked)} />
+            <span>Include watermark</span>
+          </label>
+        </div>
 
         <div className="contrastBlocks">
           {blocks.map((block, index) => (

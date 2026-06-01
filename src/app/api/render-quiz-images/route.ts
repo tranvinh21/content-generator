@@ -9,18 +9,27 @@ import {getAssetUrl} from '../../../features/vocabulary/enrich';
 
 export const runtime = 'nodejs';
 
+const optionSchema = z.object({
+  de: z.string().trim().min(1).max(140),
+  vi: z.string().trim().max(180).default(''),
+});
+
+const itemSchema = z.object({
+  questionDe: z.string().trim().min(1).max(220),
+  questionVi: z.string().trim().max(260).default(''),
+  illustrationUrl: z.string().max(8_000_000).optional(),
+  options: z.array(optionSchema).length(3),
+});
+
 const schema = z.object({
   title: z.string().trim().min(1).max(90),
-  subtitle: z.string().trim().min(1).max(150),
-  primaryCta: z.string().trim().max(30).optional().default(''),
-  secondaryCta: z.string().trim().max(30).optional().default(''),
-  handle: z.string().trim().min(1).max(50),
   includeWatermark: z.boolean().optional().default(true),
+  items: z.array(itemSchema).min(1).max(50),
 });
 
 const runStill = (outputPath: string, propsPath: string) =>
   new Promise<string>((resolve, reject) => {
-    const child = spawn('npx', ['remotion', 'still', 'src/index.ts', 'EngagementCardImage', outputPath, '--props', propsPath], {
+    const child = spawn('npx', ['remotion', 'still', 'src/index.ts', 'QuizChoiceImage', outputPath, '--props', propsPath], {
       cwd: rootDir,
       env: process.env,
     });
@@ -37,7 +46,7 @@ const runStill = (outputPath: string, propsPath: string) =>
       if (code === 0) {
         resolve(log);
       } else {
-        reject(new Error(log || `Engagement card render failed with exit code ${code}`));
+        reject(new Error(log || `Quiz image render failed with exit code ${code}`));
       }
     });
   });
@@ -59,35 +68,38 @@ export const POST = async (request: Request) => {
       'background.jpeg',
       'background.webp',
       'background.avif',
-      'background.mp4',
-      'background.mov',
     );
     const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
-    const props = {
-      ...input,
-      backgroundUrl: getServedAssetUrl(backgroundPath, request.url),
-      watermarkUrl: input.includeWatermark ? getServedAssetUrl(watermarkPath, request.url) : undefined,
-    };
-    const propsPath = join(jobDir, 'props', 'engagement-card.json');
-    const outputFileName = `engagement-card-${jobId}.png`;
-    const outputPath = join(outDir, outputFileName);
+    const backgroundUrl = getServedAssetUrl(backgroundPath, request.url);
+    const watermarkUrl = input.includeWatermark ? getServedAssetUrl(watermarkPath, request.url) : undefined;
+    const images = [];
 
-    await writeFile(propsPath, JSON.stringify(props, null, 2));
-    logs.push('Rendering engagement end card...');
-    await runStill(outputPath, propsPath);
+    for (const [index, item] of input.items.entries()) {
+      const props = {
+        title: input.title,
+        ...item,
+        backgroundUrl,
+        watermarkUrl,
+      };
+      const propsPath = join(jobDir, 'props', `quiz-choice-${index + 1}.json`);
+      const outputFileName = `quiz-choice-${String(index + 1).padStart(2, '0')}-${slugify(item.questionDe)}-${jobId}.png`;
+      const outputPath = join(outDir, outputFileName);
 
-    return NextResponse.json({
-      ok: true,
-      image: {
+      await writeFile(propsPath, JSON.stringify(props, null, 2));
+      logs.push(`[${item.questionDe}] Rendering quiz image...`);
+      await runStill(outputPath, propsPath);
+      images.push({
+        questionDe: item.questionDe,
         downloadUrl: `/out/${outputFileName}`,
         fileName: outputFileName,
-      },
-      logs,
-    });
+      });
+    }
+
+    return NextResponse.json({ok: true, images, logs});
   } catch (error) {
-    logs.push(error instanceof Error ? error.message : 'Engagement card render failed');
+    logs.push(error instanceof Error ? error.message : 'Quiz image export failed');
     return NextResponse.json(
-      {ok: false, message: error instanceof Error ? error.message : 'Engagement card render failed', logs},
+      {ok: false, message: error instanceof Error ? error.message : 'Quiz image export failed', logs},
       {status: 400},
     );
   }
@@ -121,3 +133,13 @@ const getServedAssetUrl = (assetPath: string | undefined, requestUrl: string) =>
 
   return getAssetUrl(assetPath);
 };
+
+const slugify = (value: string) =>
+  value
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'quiz';
+

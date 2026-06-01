@@ -25,6 +25,12 @@ export const featureNavItems: FeatureNavItem[] = [
     group: 'Images',
   },
   {
+    href: '/quiz-images',
+    label: 'Quiz Images',
+    description: 'Comment-answer quiz posts without reveal',
+    group: 'Images',
+  },
+  {
     href: '/read-along',
     label: 'Read Along',
     description: 'Scrolling reading practice with vocab dock',

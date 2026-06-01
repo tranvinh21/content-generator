@@ -34,6 +34,7 @@ export type VocabularyTikTokProps = {
   backgroundUrl?: string;
   watermarkUrl?: string;
   avatarUrl?: string;
+  includeAvatar?: boolean;
   outroUrl?: string;
   outroFrames?: number;
 };

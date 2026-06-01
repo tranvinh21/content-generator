@@ -168,6 +168,7 @@ export const VocabularyBuilder = () => {
   const [blocks, setBlocks] = useState<WordBlock[]>(() => [createBlock(0)]);
   const [logs, setLogs] = useState<string[]>(['Ready. Add German words or phrases, search clips, then render.']);
   const [rendering, setRendering] = useState(false);
+  const [includeAvatar, setIncludeAvatar] = useState(true);
   const [result, setResult] = useState<{downloadUrl: string; fileName: string} | null>(null);
   const selectedCount = useMemo(() => blocks.reduce((sum, block) => sum + block.selected.length, 0), [blocks]);
 
@@ -248,7 +249,7 @@ export const VocabularyBuilder = () => {
       const response = await fetch('/api/render-final', {
         method: 'POST',
         headers: {'content-type': 'application/json'},
-        body: JSON.stringify({blocks: getRenderBlocks()}),
+        body: JSON.stringify({blocks: getRenderBlocks(), includeAvatar}),
       });
       const payload = (await response.json()) as {
         ok: boolean;
@@ -289,6 +290,13 @@ export const VocabularyBuilder = () => {
             </button>
           </div>
         </header>
+
+        <section className="builderOptions">
+          <label className="checkboxLine">
+            <input checked={includeAvatar} type="checkbox" onChange={(event) => setIncludeAvatar(event.target.checked)} />
+            <span>Include avatar intro</span>
+          </label>
+        </section>
 
         <div className="blocks">
           {blocks.map((block, index) => (

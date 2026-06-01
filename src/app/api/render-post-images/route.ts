@@ -11,6 +11,7 @@ export const runtime = 'nodejs';
 
 const schema = z.object({
   terms: z.array(z.string().min(1)).min(1).max(100),
+  includeWatermark: z.boolean().optional().default(true),
 });
 
 const runStill = (outputPath: string, propsPath: string) =>
@@ -60,7 +61,7 @@ export const POST = async (request: Request) => {
     );
     const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
     const backgroundUrl = getServedAssetUrl(backgroundPath, request.url);
-    const watermarkUrl = getServedAssetUrl(watermarkPath, request.url);
+    const watermarkUrl = input.includeWatermark ? getServedAssetUrl(watermarkPath, request.url) : undefined;
     const images = [];
 
     for (const [index, term] of uniqueTerms.entries()) {

@@ -19,6 +19,7 @@ const defaultCopy = {
 
 export const EngagementCardBuilder = () => {
   const [copy, setCopy] = useState(defaultCopy);
+  const [includeWatermark, setIncludeWatermark] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [image, setImage] = useState<EngagementCardResult | null>(null);
   const [logs, setLogs] = useState<string[]>(['Ready. Create a final image for likes and follows.']);
@@ -40,7 +41,7 @@ export const EngagementCardBuilder = () => {
       const response = await fetch('/api/render-engagement-card', {
         method: 'POST',
         headers: {'content-type': 'application/json'},
-        body: JSON.stringify(copy),
+        body: JSON.stringify({...copy, includeWatermark}),
       });
       const payload = (await response.json()) as {
         ok: boolean;
@@ -101,9 +102,13 @@ export const EngagementCardBuilder = () => {
           </label>
           <div className="postHints">
             <span>1080 x 1080 PNG</span>
-            <span>Uses current background + new watermark</span>
+            <span>{includeWatermark ? 'Uses current watermark' : 'No watermark'}</span>
             <span>Good as final carousel slide</span>
           </div>
+          <label className="checkboxLine">
+            <input checked={includeWatermark} type="checkbox" onChange={(event) => setIncludeWatermark(event.target.checked)} />
+            <span>Include watermark</span>
+          </label>
         </div>
       </section>
 

@@ -251,11 +251,12 @@ const BasicAvatar: React.FC<{src?: string}> = ({src}) => {
   );
 };
 
-const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationInFrames: number; avatarUrl?: string}> = ({
+const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationInFrames: number; avatarUrl?: string; includeAvatar?: boolean}> = ({
   block,
   title,
   durationInFrames,
   avatarUrl,
+  includeAvatar = true,
 }) => {
   const frame = useCurrentFrame();
   const opacity = sceneOpacity(frame, durationInFrames, introTransitionFrames);
@@ -277,40 +278,42 @@ const IntroCard: React.FC<{block: RenderableWordBlock; title: string; durationIn
         </div>
       </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          top: 360,
-          left: 0,
-          right: 0,
-          height: 660,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2,
-        }}
-      >
-        {didVideoUrl ? (
-          <OffthreadVideo
-            src={didVideoUrl}
-            volume={(f) => sceneAudioVolume(f, durationInFrames)}
-            style={{
-              width: 640,
-              height: 640,
-              objectFit: 'cover',
-              borderRadius: 28,
-              boxShadow: '0 24px 54px rgba(17,24,39,0.24)',
-            }}
-          />
-        ) : (
-          <BasicAvatar src={avatarUrl} />
-        )}
-      </div>
+      {includeAvatar ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: 360,
+            left: 0,
+            right: 0,
+            height: 660,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          {didVideoUrl ? (
+            <OffthreadVideo
+              src={didVideoUrl}
+              volume={(f) => sceneAudioVolume(f, durationInFrames)}
+              style={{
+                width: 640,
+                height: 640,
+                objectFit: 'cover',
+                borderRadius: 28,
+                boxShadow: '0 24px 54px rgba(17,24,39,0.24)',
+              }}
+            />
+          ) : (
+            <BasicAvatar src={avatarUrl} />
+          )}
+        </div>
+      ) : null}
 
       <div
         style={{
           position: 'absolute',
-          top: 1040,
+          top: includeAvatar ? 1040 : 650,
           left: 80,
           right: 80,
           color: '#111827',
@@ -417,7 +420,13 @@ export const VocabularyTikTok: React.FC<VocabularyTikTokProps> = (props) => {
 
     sequences.push(
       <Sequence key={`${block.id}-intro`} from={blockStart} durationInFrames={introDuration}>
-        <IntroCard block={block} title={props.title} durationInFrames={introDuration} avatarUrl={props.avatarUrl} />
+        <IntroCard
+          avatarUrl={props.avatarUrl}
+          block={block}
+          durationInFrames={introDuration}
+          includeAvatar={props.includeAvatar !== false}
+          title={props.title}
+        />
       </Sequence>,
     );
     cursor += introDuration;

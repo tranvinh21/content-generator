@@ -74,6 +74,8 @@ export const POST = async (request: Request) => {
     );
     const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
     const outroPath = firstExistingAsset('out.mp4', 'outro.mp4', 'out.mov', 'outro.mov');
+    const tickAssetPath = firstExistingAsset('ticktick.mp3', 'tick-tick.mp3', 'tick.mp3', 'ticktock.mp3', 'tick-tock.wav');
+    const successAssetPath = firstExistingAsset('success.mp3', 'success.wav', 'correct.mp3', 'correct.wav', 'ding.mp3');
 
     logs.push(`Preparing ${input.items.length} quiz questions...`);
     const renderedItems = [];
@@ -103,14 +105,24 @@ export const POST = async (request: Request) => {
       });
     }
 
-    const tickPath = join(jobDir, 'audio', 'tick.wav');
-    await writeTickWav(tickPath, 2.5);
-    logs.push('Tick audio ready.');
+    let tickAudioUrl = getServedAssetUrl(tickAssetPath, request.url);
+    if (tickAudioUrl) {
+      logs.push('Tick audio ready from ticktick asset.');
+    } else {
+      const tickPath = join(jobDir, 'audio', 'tick.wav');
+      await writeTickWav(tickPath, 2.5);
+      tickAudioUrl = getServedJobUrl(tickPath, request.url);
+      logs.push('Tick audio ready from generated fallback.');
+    }
+    if (successAssetPath) {
+      logs.push('Success audio ready from success asset.');
+    }
 
     const props: QuizVideoProps = {
       title: input.title,
       items: renderedItems,
-      tickAudioUrl: getServedJobUrl(tickPath, request.url),
+      tickAudioUrl,
+      successAudioUrl: getServedAssetUrl(successAssetPath, request.url),
       backgroundUrl: getServedAssetUrl(backgroundPath, request.url),
       watermarkUrl: getServedAssetUrl(watermarkPath, request.url),
       outroUrl: getServedAssetUrl(outroPath, request.url),
@@ -129,7 +141,7 @@ export const POST = async (request: Request) => {
       ok: true,
       downloadUrl: `/out/${outputFileName}`,
       fileName: outputFileName,
-      durationSeconds: Math.round((props.items.reduce((total, item) => total + Math.max(42, item.audioFrames) + 75 + Math.max(36, (item.correctAudioFrames ?? 0) + 18) + 10, 0) + (props.outroUrl ? props.outroFrames ?? 90 : 0)) / 30),
+      durationSeconds: Math.round((props.items.reduce((total, item) => total + Math.max(42, item.audioFrames) + 90 + Math.max(36, (item.correctAudioFrames ?? 0) + 30) + 18, 0) + (props.outroUrl ? props.outroFrames ?? 90 : 0)) / 30),
       audioProvider: 'elevenlabs/macos',
       logs,
     });

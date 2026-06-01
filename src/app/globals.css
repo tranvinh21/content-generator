@@ -251,6 +251,18 @@ h1 {
   padding: 0 16px 16px;
 }
 
+.builderOptions,
+.contrastOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 16px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
 .settings {
   display: grid;
   gap: 14px;
@@ -1061,6 +1073,14 @@ h1 {
   gap: 16px;
 }
 
+.quizImagePage {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(500px, 660px) minmax(320px, 1fr) 360px;
+  gap: 16px;
+}
+
 .coverPage {
   width: min(1500px, 100%);
   margin: 0 auto;
@@ -1074,6 +1094,7 @@ h1 {
 .contrastComposer,
 .readAlongComposer,
 .quizComposer,
+.quizImagePage .postResults,
 .coverComposer {
   align-self: start;
   position: sticky;
@@ -1454,6 +1475,10 @@ h1 {
 
 .postCard img.opengraphPreview {
   aspect-ratio: 1200 / 630;
+}
+
+.postCard img.quizImagePreview {
+  aspect-ratio: 1080 / 1350;
 }
 
 .ogRules {

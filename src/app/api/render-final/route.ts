@@ -20,6 +20,7 @@ import type {RenderableWordBlock, VocabularyTikTokProps} from '../../../features
 export const runtime = 'nodejs';
 
 export const renderInputSchema = z.object({
+  includeAvatar: z.boolean().optional().default(true),
   blocks: z.array(
     z.object({
       id: z.string(),
@@ -94,26 +95,31 @@ export const buildRenderableProps = async (
     }
     const voiceUrl = getServedJobUrl(voice.url, requestUrl);
 
-    logs.push(`[${block.term}] Preparing avatar intro...`);
-    const avatarOutputPath = join(jobDir, 'avatar', `block-${blockIndex + 1}.mp4`);
-    await mkdir(join(jobDir, 'avatar'), {recursive: true});
-    const didAvatar = await generateDidAvatarIntro({text: block.term, outputPath: avatarOutputPath});
-    const avatarIntro =
-      didAvatar.ok
-        ? {
-            provider: 'did' as const,
-            videoUrl: getRequiredServedJobUrl(didAvatar.outputPath, requestUrl),
-            durationFrames: (await getVideoDurationFrames(didAvatar.outputPath)) ?? 90,
-          }
-        : {
-            provider: 'remotion-basic' as const,
-            durationFrames: 90,
-          };
-    if (didAvatar.ok) {
-      logs.push(`[${block.term}] D-ID avatar ready.`);
+    let avatarIntro: RenderableWordBlock['avatarIntro'] | undefined;
+    if (input.includeAvatar) {
+      logs.push(`[${block.term}] Preparing avatar intro...`);
+      const avatarOutputPath = join(jobDir, 'avatar', `block-${blockIndex + 1}.mp4`);
+      await mkdir(join(jobDir, 'avatar'), {recursive: true});
+      const didAvatar = await generateDidAvatarIntro({text: block.term, outputPath: avatarOutputPath});
+      avatarIntro =
+        didAvatar.ok
+          ? {
+              provider: 'did' as const,
+              videoUrl: getRequiredServedJobUrl(didAvatar.outputPath, requestUrl),
+              durationFrames: (await getVideoDurationFrames(didAvatar.outputPath)) ?? 90,
+            }
+          : {
+              provider: 'remotion-basic' as const,
+              durationFrames: 90,
+            };
+      if (didAvatar.ok) {
+        logs.push(`[${block.term}] D-ID avatar ready.`);
+      } else {
+        logs.push(`[${block.term}] D-ID skipped, using Remotion avatar fallback.`);
+        logs.push(`[${block.term}] D-ID reason: ${didAvatar.error}`);
+      }
     } else {
-      logs.push(`[${block.term}] D-ID skipped, using Remotion avatar fallback.`);
-      logs.push(`[${block.term}] D-ID reason: ${didAvatar.error}`);
+      logs.push(`[${block.term}] Avatar intro skipped by render option.`);
     }
 
     const clips = [];
@@ -175,6 +181,7 @@ export const buildRenderableProps = async (
     backgroundUrl: getServedAssetUrl(backgroundPath, requestUrl),
     watermarkUrl: getServedAssetUrl(watermarkPath, requestUrl),
     avatarUrl: getServedAssetUrl(avatarPath, requestUrl),
+    includeAvatar: input.includeAvatar,
     outroUrl: getServedAssetUrl(outroPath, requestUrl),
     outroFrames: outroPath ? await getVideoDurationFrames(outroPath) : undefined,
   };

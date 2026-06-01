@@ -33,6 +33,7 @@ export const PostImageBuilder = () => {
   const [input, setInput] = useState('Guten Tag!\nMoment mal\nWie heißt du?');
   const [rendering, setRendering] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
+  const [includeWatermark, setIncludeWatermark] = useState(true);
   const [images, setImages] = useState<PostImageResult[]>([]);
   const [logs, setLogs] = useState<string[]>(['Ready. Enter German words or phrases, one per line.']);
 
@@ -56,7 +57,7 @@ export const PostImageBuilder = () => {
       const response = await fetch('/api/render-post-images', {
         method: 'POST',
         headers: {'content-type': 'application/json'},
-        body: JSON.stringify({terms}),
+        body: JSON.stringify({terms, includeWatermark}),
       });
       const payload = (await response.json()) as {
         ok: boolean;
@@ -154,8 +155,12 @@ export const PostImageBuilder = () => {
           <div className="postHints">
             <span>{terms.length} items</span>
             <span>1080 x 1080 PNG</span>
-            <span>Uses current background + watermark</span>
+            <span>{includeWatermark ? 'Uses current watermark' : 'No watermark'}</span>
           </div>
+          <label className="checkboxLine">
+            <input checked={includeWatermark} type="checkbox" onChange={(event) => setIncludeWatermark(event.target.checked)} />
+            <span>Include watermark</span>
+          </label>
         </div>
       </section>
 

@@ -19,6 +19,7 @@ export type QuizVideoProps = {
   title: string;
   items: QuizItem[];
   tickAudioUrl?: string;
+  successAudioUrl?: string;
   backgroundUrl?: string;
   watermarkUrl?: string;
   outroUrl?: string;
