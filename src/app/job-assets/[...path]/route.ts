@@ -8,9 +8,15 @@ export const runtime = 'nodejs';
 
 const contentTypes: Record<string, string> = {
   '.aiff': 'audio/aiff',
+  '.avif': 'image/avif',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.mp3': 'audio/mpeg',
   '.mp4': 'video/mp4',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
   '.wav': 'audio/wav',
+  '.webp': 'image/webp',
 };
 
 const getExtension = (fileName: string) => {

@@ -25,6 +25,12 @@ export const featureNavItems: FeatureNavItem[] = [
     group: 'Images',
   },
   {
+    href: '/word-description',
+    label: 'Word Example',
+    description: 'Generate word images with example sentences',
+    group: 'Images',
+  },
+  {
     href: '/quiz-images',
     label: 'Quiz Images',
     description: 'Comment-answer quiz posts without reveal',

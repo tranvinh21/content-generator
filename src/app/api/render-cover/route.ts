@@ -1,15 +1,35 @@
 import {existsSync} from 'node:fs';
-import {writeFile} from 'node:fs/promises';
+import {mkdir, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {spawn} from 'node:child_process';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
-import {assetsDir, createJobDir, outDir, rootDir, sourceAssetsDir} from '../../../lib/job-paths';
+import {assetsDir, createJobDir, jobsDir, outDir, rootDir, sourceAssetsDir} from '../../../lib/job-paths';
 
 export const runtime = 'nodejs';
 
 const schema = z.object({
   title: z.string().min(1).max(120).default('100 câu tiếng Đức cơ bản 🇩🇪'),
+  coverTemplate: z.enum(['photo', 'myth']).optional(),
+  coverImageUrl: z.string().max(16_000_000).optional(),
+  coverMascotUrl: z.string().max(16_000_000).optional(),
+  coverLayout: z.enum(['balanced', 'stacked']).optional(),
+  coverLines: z
+    .array(
+      z.object({
+        text: z.string().max(80),
+        color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+      }),
+    )
+    .max(3)
+    .optional(),
+  coverTextColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  coverOverlayColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  coverOverlayOpacity: z.number().min(0).max(0.78).optional(),
+  coverSubtitle: z.string().max(60).optional(),
+  coverMythMain: z.string().max(40).optional(),
+  coverMythMeaning: z.string().max(70).optional(),
+  coverMythTwist: z.string().max(90).optional(),
 });
 
 const runStill = (outputPath: string, propsPath: string) =>
@@ -57,11 +77,30 @@ export const POST = async (request: Request) => {
       'background.mov',
     );
     const watermarkPath = firstExistingAsset('water-mark-new.png', 'watermark.png', 'watermark.webp', 'watermark.jpg', 'watermark.jpeg');
+    const macosMascotPath = firstExistingAsset('macos.svg');
+    const coverImageUrl = input.coverImageUrl?.startsWith('data:')
+      ? await materializeDataUrl(input.coverImageUrl, jobDir, request.url)
+      : input.coverImageUrl;
+    const coverMascotUrl = input.coverMascotUrl?.startsWith('data:')
+      ? await materializeDataUrl(input.coverMascotUrl, jobDir, request.url, 'cover-mascot')
+      : input.coverMascotUrl || getServedAssetUrl(macosMascotPath, request.url);
     const props = {
       title: input.title,
       blocks: [],
       backgroundUrl: getServedAssetUrl(backgroundPath, request.url),
       watermarkUrl: getServedAssetUrl(watermarkPath, request.url),
+      coverTemplate: input.coverTemplate,
+      coverImageUrl,
+      coverMascotUrl,
+      coverLayout: input.coverLayout,
+      coverLines: input.coverLines,
+      coverTextColor: input.coverTextColor,
+      coverOverlayColor: input.coverOverlayColor,
+      coverOverlayOpacity: input.coverOverlayOpacity,
+      coverSubtitle: input.coverSubtitle,
+      coverMythMain: input.coverMythMain,
+      coverMythMeaning: input.coverMythMeaning,
+      coverMythTwist: input.coverMythTwist,
     };
     const propsPath = join(jobDir, 'props', 'vocabulary-cover.json');
     const outputFileName = `german-vocab-cover-${jobId}.png`;
@@ -115,4 +154,32 @@ const getServedAssetUrl = (assetPath: string | undefined, requestUrl: string) =>
   }
 
   return undefined;
+};
+
+const dataUrlExtensions: Record<string, string> = {
+  'image/avif': '.avif',
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+};
+
+const materializeDataUrl = async (dataUrl: string, jobDir: string, requestUrl: string, baseName = 'cover-image') => {
+  const match = dataUrl.match(/^data:([^;,]+);base64,(.+)$/);
+  if (!match) {
+    throw new Error('Uploaded cover image is not a supported data URL.');
+  }
+
+  const mimeType = match[1];
+  const extension = dataUrlExtensions[mimeType];
+  if (!extension) {
+    throw new Error(`Unsupported cover image type: ${mimeType}`);
+  }
+
+  const coverDir = join(jobDir, 'cover');
+  await mkdir(coverDir, {recursive: true});
+
+  const outputPath = join(coverDir, `${baseName}${extension}`);
+  await writeFile(outputPath, Buffer.from(match[2], 'base64'));
+
+  return new URL(`/job-assets/${relative(jobsDir, outputPath)}`, requestUrl).toString();
 };

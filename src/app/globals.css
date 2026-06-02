@@ -654,7 +654,8 @@ h1 {
   font-weight: 900;
 }
 
-.coverForm input {
+.coverForm input,
+.coverForm select {
   width: 100%;
   min-height: 46px;
   border: 1px solid var(--line);
@@ -666,9 +667,84 @@ h1 {
   padding: 0 12px;
 }
 
-.coverForm input:focus {
+.coverForm input:focus,
+.coverForm select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.coverStyleGrid {
+  display: grid;
+  grid-template-columns: 120px 120px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.coverForm input[type="color"] {
+  min-height: 46px;
+  padding: 6px;
+}
+
+.coverForm input[type="range"] {
+  padding: 0;
+}
+
+.coverImagePreview {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 10px;
+}
+
+.coverImagePreview img {
+  display: block;
+  width: 132px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.coverImagePreview div {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.coverImagePreview strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.coverLineEditor {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 12px;
+}
+
+.coverLineEditor label {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 64px;
+  gap: 10px;
+  align-items: center;
+}
+
+.coverLineEditor label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.coverLineEditor input[type="color"] {
+  min-width: 0;
+  padding: 5px;
 }
 
 .block {
@@ -1147,16 +1223,28 @@ h1 {
   font-weight: 900;
 }
 
-.contrastFields input {
+.contrastFields input,
+.contrastFields textarea {
   width: 100%;
-  min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fffaf0;
   color: var(--ink);
   font-weight: 850;
   outline: none;
+}
+
+.contrastFields input {
+  min-height: 42px;
   padding: 0 11px;
+}
+
+.contrastFields textarea {
+  min-height: 118px;
+  resize: vertical;
+  padding: 10px 11px;
+  font: inherit;
+  line-height: 1.45;
 }
 
 .contrastFields input[type="file"] {
@@ -1164,12 +1252,17 @@ h1 {
   font-size: 13px;
 }
 
-.contrastFields input:focus {
+.contrastFields input:focus,
+.contrastFields textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
 }
 
 .illustrationField {
+  grid-column: 1 / -1;
+}
+
+.wordDescriptionFields .wideField {
   grid-column: 1 / -1;
 }
 

@@ -163,36 +163,454 @@ const TimedGermanSubtitle: React.FC<{clip: RenderableClip}> = ({clip}) => {
   );
 };
 
-export const VocabularyCover: React.FC<Pick<VocabularyTikTokProps, 'title' | 'watermarkUrl' | 'backgroundUrl'>> = (props) => {
-  const frame = useCurrentFrame();
-  const scale = interpolate(frame, [0, coverFrames], [0.985, 1.01], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+const splitCoverTitle = (title: string) => {
+  const manualLines = title
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (manualLines.length > 1) {
+    return manualLines;
+  }
+
+  const words = title.trim().split(/\s+/);
+  if (words.length <= 4) {
+    return [title.trim()];
+  }
+
+  let bestIndex = Math.ceil(words.length / 2);
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let index = 2; index < words.length; index += 1) {
+    const left = words.slice(0, index).join(' ');
+    const right = words.slice(index).join(' ');
+    const score = Math.abs(left.length - right.length);
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  }
+
+  return [words.slice(0, bestIndex).join(' '), words.slice(bestIndex).join(' ')];
+};
+
+const splitStackedCoverTitle = (title: string) => {
+  const manualLines = title
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (manualLines.length > 1) {
+    return manualLines;
+  }
+
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 3) {
+    return words;
+  }
+
+  const firstEnd = Math.max(1, Math.round(words.length * 0.28));
+  const secondEnd = Math.max(firstEnd + 1, Math.round(words.length * 0.72));
+
+  return [words.slice(0, firstEnd).join(' '), words.slice(firstEnd, secondEnd).join(' '), words.slice(secondEnd).join(' ')];
+};
+
+const hexToRgb = (hex: string) => {
+  const value = hex.replace('#', '');
+  const parsed = Number.parseInt(value, 16);
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+};
+
+const MythMascotFallback = () => (
+  <div
+    style={{
+      position: 'relative',
+      width: 230,
+      height: 260,
+      filter: 'drop-shadow(0 14px 0 rgba(0,0,0,0.16))',
+    }}
+  >
+    <div
+      style={{
+        position: 'absolute',
+        left: 44,
+        top: 30,
+        width: 124,
+        height: 150,
+        borderRadius: '48% 52% 44% 46%',
+        background: '#242424',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        left: 66,
+        top: 72,
+        width: 18,
+        height: 18,
+        borderRadius: 999,
+        background: '#fff',
+        boxShadow: '44px 0 0 #fff',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        left: 95,
+        top: 96,
+        width: 28,
+        height: 26,
+        background: '#ffc21a',
+        clipPath: 'polygon(0 50%, 100% 0, 76% 100%)',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        left: 82,
+        top: 166,
+        width: 78,
+        height: 26,
+        background: '#ef2b45',
+        transform: 'rotate(8deg)',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        left: 146,
+        top: 114,
+        width: 92,
+        height: 12,
+        borderRadius: 999,
+        background: '#242424',
+        transform: 'rotate(-48deg)',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        right: 6,
+        top: 66,
+        width: 78,
+        height: 8,
+        borderRadius: 999,
+        background: '#ef2b45',
+        transform: 'rotate(-42deg)',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        left: 8,
+        bottom: 4,
+        width: 190,
+        height: 56,
+        borderRadius: '50%',
+        background: '#3a3a3a',
+      }}
+    />
+  </div>
+);
+
+const MythCover: React.FC<
+  Pick<
+    VocabularyTikTokProps,
+    | 'watermarkUrl'
+    | 'coverMascotUrl'
+    | 'coverMythMain'
+    | 'coverMythMeaning'
+    | 'coverMythTwist'
+    | 'coverTextColor'
+    | 'coverOverlayColor'
+  >
+> = (props) => {
+  const accent = props.coverTextColor || '#4f7cff';
+  const ink = props.coverOverlayColor || '#111111';
+  const mythFont = '"Arial Black", Impact, "Manrope", ui-sans-serif, system-ui, sans-serif';
+  const main = props.coverMythMain?.trim() || 'FISCH';
+  const meaning = props.coverMythMeaning?.trim() || 'LÀ CÁ';
+  const twist = props.coverMythTwist?.trim() || 'NHƯNG CŨNG CÒN CÓ THỂ LÀ...';
 
   return (
     <AbsoluteFill
       style={{
-        padding: '150px 82px',
-        color: '#101820',
+        overflow: 'hidden',
+        backgroundColor: '#fffef9',
+        backgroundImage:
+          'linear-gradient(#e5e5e2 3px, transparent 3px), linear-gradient(90deg, #e5e5e2 3px, transparent 3px)',
+        backgroundSize: '82px 82px',
+        fontFamily: mythFont,
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: 62,
+          zIndex: 3,
+          display: 'grid',
+          alignItems: 'center',
+          justifyItems: 'center',
+          minWidth: 320,
+          minHeight: 88,
+          transform: 'translateX(-50%)',
+        }}
+      >
+        {props.watermarkUrl ? <Img src={props.watermarkUrl} style={{width: 320}} /> : null}
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: 250,
+          left: 52,
+          right: 52,
+          zIndex: 2,
+          color: ink,
+          fontSize: main.length > 10 ? 176 : 226,
+          fontWeight: 950,
+          fontStyle: 'italic',
+          letterSpacing: -4,
+          lineHeight: 0.82,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          WebkitTextStroke: `7px ${ink}`,
+          paintOrder: 'stroke fill',
+        }}
+      >
+        {main}
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 552,
+          left: 210,
+          right: 150,
+          zIndex: 1,
+          height: 176,
+          background: accent,
+          transform: 'skewX(-9deg)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: 581,
+          left: 180,
+          right: 140,
+          zIndex: 2,
+          color: '#fffef9',
+          fontSize: meaning.length > 18 ? 78 : 96,
+          fontWeight: 950,
+          fontStyle: 'italic',
+          lineHeight: 1,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          WebkitTextStroke: `5px ${ink}`,
+          paintOrder: 'stroke fill',
+        }}
+      >
+        {meaning}
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 800,
+          left: 66,
+          right: 66,
+          zIndex: 2,
+          display: 'grid',
+          placeItems: 'center',
+          minHeight: 84,
+          background: 'transparent',
+          color: accent,
+          fontSize: twist.length > 38 ? 34 : 44,
+          fontWeight: 950,
+          lineHeight: 0.96,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          padding: '0 54px',
+        }}
+      >
+        {twist}
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          left: -130,
+          right: -130,
+          bottom: -160,
+          zIndex: 1,
+          height: 440,
+          borderRadius: '54% 46% 0 0',
+          background: accent,
+          borderTop: `38px solid ${ink}`,
+          transform: 'rotate(-4deg)',
+        }}
+      />
+      <div style={{position: 'absolute', right: 72, bottom: 44, zIndex: 3}}>
+        {props.coverMascotUrl ? (
+          <Img
+            src={props.coverMascotUrl}
+            style={{
+              width: 420,
+              height: 460,
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 18px 0 rgba(0,0,0,0.16))',
+            }}
+          />
+        ) : (
+          <MythMascotFallback />
+        )}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+export const VocabularyCover: React.FC<
+  Pick<
+    VocabularyTikTokProps,
+    | 'title'
+    | 'watermarkUrl'
+    | 'backgroundUrl'
+    | 'coverTemplate'
+    | 'coverImageUrl'
+    | 'coverMascotUrl'
+    | 'coverLayout'
+    | 'coverLines'
+    | 'coverMythMain'
+    | 'coverMythMeaning'
+    | 'coverMythTwist'
+    | 'coverTextColor'
+    | 'coverOverlayColor'
+    | 'coverOverlayOpacity'
+    | 'coverSubtitle'
+  >
+> = (props) => {
+  const frame = useCurrentFrame();
+  const scale = interpolate(frame, [0, coverFrames], [0.985, 1.01], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const coverLayout = props.coverLayout || 'balanced';
+  if (props.coverTemplate === 'myth') {
+    return (
+      <MythCover
+        coverMascotUrl={props.coverMascotUrl}
+        coverMythMain={props.coverMythMain}
+        coverMythMeaning={props.coverMythMeaning}
+        coverMythTwist={props.coverMythTwist}
+        coverOverlayColor={props.coverOverlayColor}
+        coverTextColor={props.coverTextColor}
+        watermarkUrl={props.watermarkUrl}
+      />
+    );
+  }
+
+  const explicitLines =
+    props.coverLines
+      ?.map((line) => ({text: line.text.trim(), color: line.color}))
+      .filter((line) => line.text)
+      .slice(0, 3) ?? [];
+  const lines =
+    coverLayout === 'stacked'
+      ? explicitLines.length > 0
+        ? explicitLines.map((line) => line.text)
+        : splitStackedCoverTitle(props.title)
+      : splitCoverTitle(props.title);
+  const textLength = props.title.replace(/\s/g, '').length;
+  const fontSize = coverLayout === 'stacked' ? (textLength > 48 ? 68 : 78) : textLength > 48 ? 54 : textLength > 34 ? 64 : 84;
+  const textColor = props.coverTextColor || '#ffd21f';
+  const overlayColor = hexToRgb(props.coverOverlayColor || '#080c12');
+  const overlayOpacity = props.coverOverlayOpacity ?? 0.48;
+
+  return (
+    <AbsoluteFill
+      style={{
+        padding: '112px 76px',
+        color: textColor,
         textAlign: 'center',
         justifyContent: 'center',
         transform: `scale(${scale})`,
         fontFamily,
       }}
     >
-      <Background src={props.backgroundUrl} />
+      <Background src={props.coverImageUrl || props.backgroundUrl} />
+      <AbsoluteFill style={{background: `rgba(${overlayColor.r}, ${overlayColor.g}, ${overlayColor.b}, ${overlayOpacity})`, zIndex: 1}} />
       <div
         style={{
           position: 'relative',
           zIndex: 2,
-          marginTop: -180,
-          fontSize: 88,
-          fontWeight: 800,
-          lineHeight: 1.08,
-          textShadow: '0 3px 0 rgba(255,255,255,0.8)',
+          display: 'grid',
+          gap: coverLayout === 'stacked' ? 20 : 12,
+          marginTop: coverLayout === 'stacked' ? 90 : -120,
+          fontSize,
+          fontWeight: 900,
+          lineHeight: coverLayout === 'stacked' ? 0.98 : 1.04,
+          letterSpacing: 0,
+          textTransform: 'uppercase',
+          textShadow: 'none',
         }}
       >
-        {props.title}
+        {lines.map((line, index) => (
+          <span
+            key={`${line}-${index}`}
+            style={{
+              color: coverLayout === 'stacked' ? explicitLines[index]?.color || (index === 1 ? textColor : '#fffdf8') : textColor,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {line}
+          </span>
+        ))}
       </div>
-      <Watermark src={props.watermarkUrl} />
+      {props.coverSubtitle ? (
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 2,
+            left: 76,
+            right: 76,
+            bottom: 430,
+            color: 'rgba(255,255,255,0.9)',
+            fontSize: 44,
+            fontWeight: 500,
+            lineHeight: 1.1,
+            textShadow: '0 8px 18px rgba(0,0,0,0.34)',
+          }}
+        >
+          {props.coverSubtitle}
+        </div>
+      ) : null}
+      {props.watermarkUrl ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: 112,
+            left: '50%',
+            display: 'grid',
+            placeItems: 'center',
+            minWidth: 330,
+            minHeight: 92,
+            padding: '16px 28px',
+            borderRadius: 999,
+            background: 'rgba(255, 255, 255, 0.82)',
+            border: '1px solid rgba(255, 255, 255, 0.62)',
+            boxShadow: '0 18px 38px rgba(0,0,0,0.2)',
+            transform: 'translateX(-50%)',
+            zIndex: 2,
+          }}
+        >
+          <Img src={props.watermarkUrl} style={{width: 250}} />
+        </div>
+      ) : null}
     </AbsoluteFill>
   );
 };

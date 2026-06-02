@@ -13,6 +13,7 @@ const contentTypes: Record<string, string> = {
   '.mov': 'video/quicktime',
   '.mp4': 'video/mp4',
   '.png': 'image/png',
+  '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
 };
 

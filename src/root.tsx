@@ -19,6 +19,7 @@ import type {PhraseVideoProps} from './types';
 import type {VocabularyTikTokProps} from './features/vocabulary/types';
 import type {ReadAlongVideoProps} from './features/read-along/types';
 import type {QuizVideoProps} from './features/quiz/types';
+import {WordDescriptionImage} from './word-description-image';
 
 const defaultProps: PhraseVideoProps = {
   clips: sampleClips,
@@ -189,6 +190,20 @@ export const Root: React.FC = () => {
           informalVi: 'Bạn giúp tôi được không?',
           formalGerman: 'Könnten Sie mir bitte helfen?',
           formalVi: 'Bạn có thể vui lòng giúp tôi không?',
+        }}
+      />
+      <Composition
+        id="WordDescriptionImage"
+        component={WordDescriptionImage}
+        durationInFrames={1}
+        fps={DEFAULT_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{
+          german: 'die Bank',
+          vietnamese: 'ngân hàng / ghế dài',
+          example: 'Ich sitze auf der Bank im Park.',
+          exampleVi: 'Tôi ngồi trên chiếc ghế dài trong công viên.',
         }}
       />
       <Composition

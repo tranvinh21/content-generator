@@ -34,6 +34,21 @@ export type VocabularyTikTokProps = {
   backgroundUrl?: string;
   watermarkUrl?: string;
   avatarUrl?: string;
+  coverTemplate?: 'photo' | 'myth';
+  coverImageUrl?: string;
+  coverMascotUrl?: string;
+  coverLayout?: 'balanced' | 'stacked';
+  coverLines?: {
+    text: string;
+    color?: string;
+  }[];
+  coverMythMain?: string;
+  coverMythMeaning?: string;
+  coverMythTwist?: string;
+  coverTextColor?: string;
+  coverOverlayColor?: string;
+  coverOverlayOpacity?: number;
+  coverSubtitle?: string;
   includeAvatar?: boolean;
   outroUrl?: string;
   outroFrames?: number;
