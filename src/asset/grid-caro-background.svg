@@ -1,0 +1,10 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="caro-grid" width="82" height="82" patternUnits="userSpaceOnUse">
+      <path d="M0 0H82" stroke="#E5E5E2" stroke-width="3"/>
+      <path d="M0 0V82" stroke="#E5E5E2" stroke-width="3"/>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="#FFFEF9"/>
+  <rect width="1080" height="1920" fill="url(#caro-grid)"/>
+</svg>

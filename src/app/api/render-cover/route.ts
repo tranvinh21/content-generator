@@ -63,6 +63,7 @@ export const POST = async (request: Request) => {
     const input = schema.parse(await request.json().catch(() => ({})));
     const {jobId, jobDir} = await createJobDir();
     const backgroundPath = firstExistingAsset(
+      'grid-caro-background.png',
       'background-img.png',
       'background-img.jpg',
       'background-img.jpeg',

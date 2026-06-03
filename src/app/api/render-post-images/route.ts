@@ -46,6 +46,7 @@ export const POST = async (request: Request) => {
     const uniqueTerms = Array.from(new Set(input.terms.map((term) => term.trim()).filter(Boolean)));
     const {jobId, jobDir} = await createJobDir();
     const backgroundPath = firstExistingAsset(
+      'grid-caro-background.png',
       'background-img.png',
       'background-img.jpg',
       'background-img.jpeg',

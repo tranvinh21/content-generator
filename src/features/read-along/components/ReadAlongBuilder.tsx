@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {PanelHeader} from '../../../components/PanelHeader';
 import {StatusPanel} from '../../../components/StatusPanel';
 import type {ReadAlongVocabularyItem} from '../types';
@@ -10,6 +10,14 @@ type ReadAlongResult = {
   fileName: string;
   durationSeconds: number;
   audioProvider: string;
+};
+
+type AudioMode = 'generate' | 'asset' | 'upload';
+
+type AudioAsset = {
+  id: string;
+  label: string;
+  url?: string;
 };
 
 const defaultText =
@@ -44,6 +52,11 @@ export const ReadAlongBuilder = () => {
   const [text, setText] = useState(defaultText);
   const [vocabularyInput, setVocabularyInput] = useState(defaultVocabulary);
   const [useEndCard, setUseEndCard] = useState(true);
+  const [audioMode, setAudioMode] = useState<AudioMode>('generate');
+  const [audioAssets, setAudioAssets] = useState<AudioAsset[]>([]);
+  const [audioAssetId, setAudioAssetId] = useState('');
+  const [uploadedAudioDataUrl, setUploadedAudioDataUrl] = useState('');
+  const [uploadedAudioName, setUploadedAudioName] = useState('');
   const [rendering, setRendering] = useState(false);
   const [result, setResult] = useState<ReadAlongResult | null>(null);
   const [logs, setLogs] = useState<string[]>(['Ready. Add a German reading text and vocabulary list.']);
@@ -52,6 +65,49 @@ export const ReadAlongBuilder = () => {
 
   const appendLogs = (lines: string[]) => {
     setLogs((current) => [...current, ...lines]);
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAudioAssets = async () => {
+      try {
+        const response = await fetch('/api/render-read-along');
+        const payload = (await response.json()) as {ok?: boolean; audioAssets?: AudioAsset[]};
+        if (!active) {
+          return;
+        }
+
+        const assets = payload.audioAssets ?? [];
+        setAudioAssets(assets);
+        setAudioAssetId((current) => current || assets[0]?.id || '');
+      } catch {
+        if (active) {
+          appendLogs(['Could not load saved audio list. Upload audio or generate voice still works.']);
+        }
+      }
+    };
+
+    loadAudioAssets();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const setUploadedAudio = (file: File | null) => {
+    if (!file) {
+      setUploadedAudioDataUrl('');
+      setUploadedAudioName('');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedAudioDataUrl(typeof reader.result === 'string' ? reader.result : '');
+      setUploadedAudioName(file.name);
+    };
+    reader.readAsDataURL(file);
   };
 
   const generate = async () => {
@@ -68,7 +124,16 @@ export const ReadAlongBuilder = () => {
       const response = await fetch('/api/render-read-along', {
         method: 'POST',
         headers: {'content-type': 'application/json'},
-        body: JSON.stringify({title, level, text, vocabulary, useEndCard}),
+        body: JSON.stringify({
+          title,
+          level,
+          text,
+          vocabulary,
+          useEndCard,
+          audioMode,
+          audioAssetId,
+          uploadedAudioDataUrl,
+        }),
       });
       const payload = (await response.json()) as {
         ok: boolean;
@@ -135,6 +200,51 @@ export const ReadAlongBuilder = () => {
               onChange={(event) => setVocabularyInput(event.target.value)}
             />
           </label>
+          <div className="readAlongAudioPanel">
+            <div className="engagementSplit">
+              <label>
+                <span>Audio source</span>
+                <select value={audioMode} onChange={(event) => setAudioMode(event.target.value as AudioMode)}>
+                  <option value="generate">Generate voice</option>
+                  <option value="asset">Use saved MP3/WAV/AIFF</option>
+                  <option value="upload">Upload new MP3/WAV/AIFF</option>
+                </select>
+              </label>
+              {audioMode === 'asset' ? (
+                <label>
+                  <span>Saved audio</span>
+                  <select value={audioAssetId} onChange={(event) => setAudioAssetId(event.target.value)}>
+                    {audioAssets.length > 0 ? (
+                      audioAssets.map((asset) => (
+                        <option key={asset.id} value={asset.id}>
+                          {asset.label}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No saved audio found</option>
+                    )}
+                  </select>
+                </label>
+              ) : null}
+              {audioMode === 'upload' ? (
+                <label>
+                  <span>Upload audio</span>
+                  <input accept="audio/mpeg,audio/mp3,audio/wav,audio/aiff,.mp3,.wav,.aiff" type="file" onChange={(event) => setUploadedAudio(event.target.files?.[0] ?? null)} />
+                </label>
+              ) : null}
+            </div>
+            {audioMode === 'asset' && audioAssetId ? (
+              <audio controls src={audioAssets.find((asset) => asset.id === audioAssetId)?.url} />
+            ) : null}
+            {audioMode === 'upload' && uploadedAudioDataUrl ? (
+              <div className="readAlongUploadedAudio">
+                <audio controls src={uploadedAudioDataUrl} />
+                <button className="button secondary" type="button" onClick={() => setUploadedAudio(null)}>
+                  Clear {uploadedAudioName || 'audio'}
+                </button>
+              </div>
+            ) : null}
+          </div>
           <label className="checkboxLine">
             <input checked={useEndCard} type="checkbox" onChange={(event) => setUseEndCard(event.target.checked)} />
             <span>Show end card</span>
@@ -143,7 +253,7 @@ export const ReadAlongBuilder = () => {
             <span>{vocabulary.length} vocabulary items</span>
             <span>IPA + Vietnamese auto-generated</span>
             <span>1080 x 1920 MP4</span>
-            <span>Text scrolls with audio duration</span>
+            <span>{audioMode === 'generate' ? 'Voice generated automatically' : 'Text scrolls with selected audio'}</span>
           </div>
         </div>
       </section>

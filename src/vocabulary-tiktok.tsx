@@ -330,6 +330,7 @@ const MythCover: React.FC<
     | 'coverMythTwist'
     | 'coverTextColor'
     | 'coverOverlayColor'
+    | 'coverSubtitle'
   >
 > = (props) => {
   const accent = props.coverTextColor || '#4f7cff';
@@ -338,6 +339,8 @@ const MythCover: React.FC<
   const main = props.coverMythMain?.trim() || 'FISCH';
   const meaning = props.coverMythMeaning?.trim() || 'LÀ CÁ';
   const twist = props.coverMythTwist?.trim() || 'NHƯNG CŨNG CÒN CÓ THỂ LÀ...';
+  const subtitle = props.coverSubtitle?.trim();
+  const contentOffsetY = 180;
 
   return (
     <AbsoluteFill
@@ -369,7 +372,7 @@ const MythCover: React.FC<
       <div
         style={{
           position: 'absolute',
-          top: 250,
+          top: 250 + contentOffsetY,
           left: 52,
           right: 52,
           zIndex: 2,
@@ -391,7 +394,7 @@ const MythCover: React.FC<
       <div
         style={{
           position: 'absolute',
-          top: 552,
+          top: 552 + contentOffsetY,
           left: 210,
           right: 150,
           zIndex: 1,
@@ -403,7 +406,7 @@ const MythCover: React.FC<
       <div
         style={{
           position: 'absolute',
-          top: 581,
+          top: 581 + contentOffsetY,
           left: 180,
           right: 140,
           zIndex: 2,
@@ -424,7 +427,7 @@ const MythCover: React.FC<
       <div
         style={{
           position: 'absolute',
-          top: 800,
+          top: 800 + contentOffsetY,
           left: 66,
           right: 66,
           zIndex: 2,
@@ -443,6 +446,25 @@ const MythCover: React.FC<
       >
         {twist}
       </div>
+      {subtitle ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: 900 + contentOffsetY,
+            left: '50%',
+            zIndex: 3,
+            color: ink,
+            fontFamily: fontFamily,
+            fontSize: 40,
+            fontWeight: 850,
+            lineHeight: 1,
+            textAlign: 'center',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          {subtitle}
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -508,6 +530,7 @@ export const VocabularyCover: React.FC<
         coverMythMeaning={props.coverMythMeaning}
         coverMythTwist={props.coverMythTwist}
         coverOverlayColor={props.coverOverlayColor}
+        coverSubtitle={props.coverSubtitle}
         coverTextColor={props.coverTextColor}
         watermarkUrl={props.watermarkUrl}
       />

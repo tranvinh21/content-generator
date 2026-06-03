@@ -1383,6 +1383,7 @@ h1 {
 }
 
 .readAlongForm input,
+.readAlongForm select,
 .readAlongForm textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -1395,9 +1396,33 @@ h1 {
 }
 
 .readAlongForm input:focus,
+.readAlongForm select:focus,
 .readAlongForm textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(223, 47, 47, 0.12);
+}
+
+.readAlongForm input[type="file"] {
+  padding: 9px;
+  font-size: 13px;
+}
+
+.readAlongAudioPanel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 12px;
+}
+
+.readAlongAudioPanel audio {
+  width: 100%;
+}
+
+.readAlongUploadedAudio {
+  display: grid;
+  gap: 10px;
 }
 
 .readingTextarea {

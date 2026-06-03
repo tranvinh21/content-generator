@@ -153,12 +153,12 @@ export const CoverBuilder = () => {
             <span>Cover title</span>
             <input value={title} onChange={(event) => setTitle(event.target.value)} />
           </label>
+          <label>
+            <span>Subtitle optional</span>
+            <input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} />
+          </label>
           {coverTemplate === 'photo' ? (
             <>
-              <label>
-                <span>Subtitle optional</span>
-                <input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} />
-              </label>
               <label>
                 <span>Text layout</span>
                 <select value={coverLayout} onChange={(event) => setCoverLayout(event.target.value as 'balanced' | 'stacked')}>

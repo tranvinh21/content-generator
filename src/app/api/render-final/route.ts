@@ -158,6 +158,7 @@ export const buildRenderableProps = async (
   }
 
   const backgroundPath = firstExistingAsset(
+    'grid-caro-background.png',
     'background-img.png',
     'background-img.jpg',
     'background-img.jpeg',

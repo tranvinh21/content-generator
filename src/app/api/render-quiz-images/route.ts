@@ -58,6 +58,7 @@ export const POST = async (request: Request) => {
     const input = schema.parse(await request.json());
     const {jobId, jobDir} = await createJobDir();
     const backgroundPath = firstExistingAsset(
+      'grid-caro-background.png',
       'background-img.png',
       'background-img.jpg',
       'background-img.jpeg',
@@ -142,4 +143,3 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 48) || 'quiz';
-

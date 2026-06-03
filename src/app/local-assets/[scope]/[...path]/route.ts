@@ -10,10 +10,13 @@ const contentTypes: Record<string, string> = {
   '.avif': 'image/avif',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  '.aiff': 'audio/aiff',
   '.mov': 'video/quicktime',
+  '.mp3': 'audio/mpeg',
   '.mp4': 'video/mp4',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
+  '.wav': 'audio/wav',
   '.webp': 'image/webp',
 };
 
